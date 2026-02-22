@@ -1,0 +1,9 @@
+@echo off
+echo Downloading Maven if needed...
+if not exist .mvn\wrapper\maven-wrapper.jar (
+    echo Maven wrapper jar not found, downloading...
+    powershell -Command "Invoke-WebRequest -Uri 'https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar' -OutFile '.mvn\wrapper\maven-wrapper.jar'"
+)
+
+echo Building project...
+java -jar .mvn\wrapper\maven-wrapper.jar clean install
