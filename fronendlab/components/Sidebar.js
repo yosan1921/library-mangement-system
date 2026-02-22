@@ -47,9 +47,9 @@ export default function Sidebar({ role = 'admin' }) {
 
     return (
         <>
-            {/* Mobile hamburger toggle (floats when closed on mobile) */}
+            {/* Mobile hamburger toggle */}
             <button
-                className="lg:hidden fixed top-[4.5rem] left-4 z-[900] bg-[#2c3e50] hover:bg-[#34495e] text-white border-none rounded-lg w-10 h-10 flex items-center justify-center text-xl cursor-pointer shadow-md transition-colors"
+                className="sidebar-toggle"
                 onClick={() => setMobileOpen(!mobileOpen)}
                 aria-label="Toggle sidebar"
             >
@@ -59,38 +59,146 @@ export default function Sidebar({ role = 'admin' }) {
             {/* Overlay for mobile */}
             {mobileOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black/50 z-[990] backdrop-blur-[2px]"
+                    className="sidebar-overlay"
                     onClick={() => setMobileOpen(false)}
                 />
             )}
 
-            <aside className={`fixed top-0 bottom-0 left-0 w-[260px] bg-[#2c3e50] text-white z-[995] overflow-y-auto shadow-lg transition-transform duration-300 lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="p-6 border-b border-white/10 bg-[#1a252f]">
-                    <h2 className="text-2xl font-bold m-0 text-[#3498db]">{panelTitle}</h2>
+            <aside className={`admin-sidebar ${mobileOpen ? 'admin-sidebar--open' : ''}`}>
+                <div className="sidebar-header">
+                    <h2 className="sidebar-title">{panelTitle}</h2>
                 </div>
-                <nav className="py-4">
+                <nav className="sidebar-nav">
                     {menuItems.map((item) => (
                         <Link
                             key={item.path}
                             href={item.path}
-                            className={`flex items-center px-6 py-3 text-[#ecf0f1] no-underline transition-all duration-250 border-l-[3px] border-transparent text-[0.95rem] hover:bg-[#34495e] hover:pl-8 ${isActive(item.path) ? 'bg-[#34495e] !border-[#3498db] text-white' : ''}`}
+                            className={`sidebar-link ${isActive(item.path) ? 'sidebar-link--active' : ''}`}
                             onClick={() => setMobileOpen(false)}
                         >
-                            <span className="text-xl mr-4 min-w-[24px]">{item.icon}</span>
-                            <span className="text-[0.95rem]">{item.name}</span>
+                            <span className="sidebar-icon">{item.icon}</span>
+                            <span className="sidebar-link-text">{item.name}</span>
                         </Link>
                     ))}
                 </nav>
             </aside>
+
             <style jsx global>{`
+                /* ── Sidebar Core ── */
+                .admin-sidebar {
+                    width: 260px;
+                    background-color: #2c3e50;
+                    min-height: 100vh;
+                    color: white;
+                    position: fixed;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    overflow-y: auto;
+                    box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+                    z-index: 1000;
+                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .sidebar-header {
+                    padding: 1.5rem;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    background-color: #1a252f;
+                }
+                .sidebar-title {
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    margin: 0;
+                    color: #3498db;
+                }
+                .sidebar-nav {
+                    padding: 1rem 0;
+                }
+                .sidebar-link {
+                    display: flex;
+                    align-items: center;
+                    padding: 0.85rem 1.5rem;
+                    color: #ecf0f1;
+                    text-decoration: none;
+                    transition: all 0.25s ease;
+                    border-left: 3px solid transparent;
+                    font-size: 0.95rem;
+                }
+                .sidebar-link:hover {
+                    background-color: #34495e;
+                    padding-left: 2rem;
+                }
+                .sidebar-link--active {
+                    background-color: #34495e;
+                    border-left: 3px solid #3498db;
+                    color: white;
+                }
+                .sidebar-icon {
+                    font-size: 1.25rem;
+                    margin-right: 1rem;
+                    min-width: 24px;
+                }
+                .sidebar-link-text {
+                    font-size: 0.95rem;
+                }
+
                 /* ── Scrollbar ── */
-                aside {
+                .admin-sidebar {
                     scrollbar-width: thin;
                     scrollbar-color: #34495e #2c3e50;
                 }
-                aside::-webkit-scrollbar { width: 6px; }
-                aside::-webkit-scrollbar-track { background: #2c3e50; }
-                aside::-webkit-scrollbar-thumb { background: #34495e; border-radius: 3px; }
+                .admin-sidebar::-webkit-scrollbar { width: 6px; }
+                .admin-sidebar::-webkit-scrollbar-track { background: #2c3e50; }
+                .admin-sidebar::-webkit-scrollbar-thumb { background: #34495e; border-radius: 3px; }
+
+                /* ── Mobile Toggle Button ── */
+                .sidebar-toggle {
+                    display: none;
+                    position: fixed;
+                    top: 0.75rem;
+                    left: 0.75rem;
+                    z-index: 1100;
+                    background: #2c3e50;
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    width: 42px;
+                    height: 42px;
+                    font-size: 1.3rem;
+                    cursor: pointer;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    transition: background-color 0.2s;
+                }
+                .sidebar-toggle:hover {
+                    background: #34495e;
+                }
+
+                /* ── Mobile Overlay ── */
+                .sidebar-overlay {
+                    display: none;
+                }
+
+                /* ── Mobile Responsive ── */
+                @media (max-width: 768px) {
+                    .admin-sidebar {
+                        transform: translateX(-100%);
+                    }
+                    .admin-sidebar.admin-sidebar--open {
+                        transform: translateX(0);
+                    }
+                    .sidebar-toggle {
+                        display: flex;
+                    }
+                    .sidebar-overlay {
+                        display: block;
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(0,0,0,0.5);
+                        z-index: 999;
+                        backdrop-filter: blur(2px);
+                    }
+                }
             `}</style>
         </>
     );

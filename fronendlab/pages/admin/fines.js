@@ -200,31 +200,26 @@ export default function FinesManagement() {
     return (
         <>
             <Navbar />
-            <div className="flex bg-[#f5f6fa] min-h-[calc(100vh-60px)]">
+            <div style={styles.layout}>
                 <Sidebar role="admin" />
-                <main className="flex-1 w-full lg:ml-[260px] p-4 lg:p-8 overflow-x-hidden">
+                <main style={styles.main}>
                     {/* ── Page Header ── */}
-                    <div className="flex flex-wrap justify-between items-center gap-4 mb-7">
+                    <div style={styles.pageHeader}>
                         <div>
-                            <h1 className="text-[1.85rem] font-bold text-[#2c3e50] m-0">💳 Fines & Payments</h1>
-                            <p className="text-[#7f8c8d] text-[0.95rem] mt-1">
+                            <h1 style={styles.pageTitle}>💳 Fines & Payments</h1>
+                            <p style={styles.pageSubtitle}>
                                 Track financial obligations, record payments, and issue manual fines
                             </p>
                         </div>
-                        <div className="flex gap-3">
+                        <div style={styles.headerActions}>
                             <button
-                                className="px-5 py-3 bg-gradient-to-br from-[#e74c3c] to-[#c0392b] text-white border-none rounded-xl cursor-pointer text-[0.95rem] font-semibold shadow-[0_4px_14px_rgba(231,76,60,0.3)] transition-all duration-300 hover:shadow-[0_6px_20px_rgba(231,76,60,0.4)] disabled:opacity-70"
+                                style={styles.btnCreateFine}
                                 onClick={() => setShowManualFineModal(true)}
                                 disabled={loading}
                             >
                                 ＋ Create Manual Fine
                             </button>
-                            <button
-                                onClick={loadData}
-                                className="px-4 py-3 bg-white text-[#34495e] border-[1.5px] border-[#dfe6e9] rounded-xl cursor-pointer text-base transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:bg-gray-50 disabled:opacity-70"
-                                title="Refresh Data"
-                                disabled={loading}
-                            >
+                            <button onClick={loadData} style={styles.btnRefresh} title="Refresh Data" disabled={loading}>
                                 🔄
                             </button>
                         </div>
@@ -246,63 +241,65 @@ export default function FinesManagement() {
 
                     {/* ── Report Overview ── */}
                     {report && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                            <div className="bg-white p-5 rounded-xl shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md border-l-4 border-l-[#3498db]">
-                                <div className="w-12 h-12 rounded-xl bg-[#f8f9fb] flex items-center justify-center shrink-0">
-                                    <span className="text-2xl">📋</span>
+                        <div className="fines-stats-grid" style={styles.statsGrid}>
+                            <div style={{ ...styles.statCard, borderLeft: '4px solid #3498db' }}>
+                                <div style={styles.statIconWrap}>
+                                    <span style={styles.statIcon}>📋</span>
                                 </div>
-                                <div className="flex flex-col justify-center">
-                                    <div className="text-2xl font-bold text-[#2c3e50] leading-tight">{formatCurrency(report.totalFines)}</div>
-                                    <div className="text-[0.85rem] text-[#7f8c8d] font-semibold mt-1">Total Fines Issued</div>
-                                    <div className="text-xs text-[#bdc3c7] mt-[2px]">{report.totalCount} fines</div>
-                                </div>
-                            </div>
-                            <div className="bg-white p-5 rounded-xl shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md border-l-4 border-l-[#27ae60]">
-                                <div className="w-12 h-12 rounded-xl bg-[#f8f9fb] flex items-center justify-center shrink-0">
-                                    <span className="text-2xl">💵</span>
-                                </div>
-                                <div className="flex flex-col justify-center">
-                                    <div className="text-2xl font-bold text-[#27ae60] leading-tight">{formatCurrency(report.totalPaid)}</div>
-                                    <div className="text-[0.85rem] text-[#7f8c8d] font-semibold mt-1">Total Collected</div>
-                                    <div className="text-xs text-[#bdc3c7] mt-[2px]">{report.paidCount} paid</div>
+                                <div style={styles.statContent}>
+                                    <div style={styles.statValue}>{formatCurrency(report.totalFines)}</div>
+                                    <div style={styles.statLabel}>Total Fines Issued</div>
+                                    <div style={styles.statSubText}>{report.totalCount} fines</div>
                                 </div>
                             </div>
-                            <div className="bg-white p-5 rounded-xl shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md border-l-4 border-l-[#e74c3c]">
-                                <div className="w-12 h-12 rounded-xl bg-[#f8f9fb] flex items-center justify-center shrink-0">
-                                    <span className="text-2xl">⚠️</span>
+                            <div style={{ ...styles.statCard, borderLeft: '4px solid #27ae60' }}>
+                                <div style={styles.statIconWrap}>
+                                    <span style={styles.statIcon}>💵</span>
                                 </div>
-                                <div className="flex flex-col justify-center">
-                                    <div className="text-2xl font-bold text-[#e74c3c] leading-tight">{formatCurrency(report.totalOutstanding)}</div>
-                                    <div className="text-[0.85rem] text-[#7f8c8d] font-semibold mt-1">Total Outstanding</div>
-                                    <div className="text-xs text-[#bdc3c7] mt-[2px]">{report.unpaidCount} unpaid, {report.partiallyPaidCount} partial</div>
+                                <div style={styles.statContent}>
+                                    <div style={{ ...styles.statValue, color: '#27ae60' }}>{formatCurrency(report.totalPaid)}</div>
+                                    <div style={styles.statLabel}>Total Collected</div>
+                                    <div style={styles.statSubText}>{report.paidCount} paid</div>
                                 </div>
                             </div>
-                            <div className="bg-white p-5 rounded-xl shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md border-l-4 border-l-[#9b59b6]">
-                                <div className="w-12 h-12 rounded-xl bg-[#f8f9fb] flex items-center justify-center shrink-0">
-                                    <span className="text-2xl">✨</span>
+                            <div style={{ ...styles.statCard, borderLeft: '4px solid #e74c3c' }}>
+                                <div style={styles.statIconWrap}>
+                                    <span style={styles.statIcon}>⚠️</span>
                                 </div>
-                                <div className="flex flex-col justify-center">
-                                    <div className="text-2xl font-bold text-[#9b59b6] leading-tight">{report.waivedCount}</div>
-                                    <div className="text-[0.85rem] text-[#7f8c8d] font-semibold mt-1">Fines Waived</div>
-                                    <div className="text-xs text-[#bdc3c7] mt-[2px]">waived count</div>
+                                <div style={styles.statContent}>
+                                    <div style={{ ...styles.statValue, color: '#e74c3c' }}>{formatCurrency(report.totalOutstanding)}</div>
+                                    <div style={styles.statLabel}>Total Outstanding</div>
+                                    <div style={styles.statSubText}>{report.unpaidCount} unpaid, {report.partiallyPaidCount} partial</div>
+                                </div>
+                            </div>
+                            <div style={{ ...styles.statCard, borderLeft: '4px solid #9b59b6' }}>
+                                <div style={styles.statIconWrap}>
+                                    <span style={styles.statIcon}>✨</span>
+                                </div>
+                                <div style={styles.statContent}>
+                                    <div style={{ ...styles.statValue, color: '#9b59b6' }}>{report.waivedCount}</div>
+                                    <div style={styles.statLabel}>Fines Waived</div>
+                                    <div style={styles.statSubText}>waived count</div>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {/* ── Toolbar: Tabs + Search ── */}
-                    <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-3">
-                        <div className="flex bg-white rounded-xl p-1.5 shadow-sm overflow-x-auto hide-scrollbar gap-1">
+                    <div className="fines-toolbar" style={styles.toolbar}>
+                        <div className="fines-tabs" style={styles.tabsBar}>
                             {tabs.map(tab => (
                                 <button
                                     key={tab.key}
                                     onClick={() => setActiveTab(tab.key)}
-                                    className={`flex items-center justify-center gap-2 px-5 py-3 border-none border-b-[3px] bg-transparent cursor-pointer text-sm rounded-lg transition-all duration-250 font-medium whitespace-nowrap ${activeTab === tab.key ? 'text-[#2c3e50] font-bold bg-[#f8f9fb]' : 'border-transparent text-[#7f8c8d]'}`}
-                                    style={activeTab === tab.key ? { borderBottomColor: tab.color } : {}}
+                                    style={activeTab === tab.key
+                                        ? { ...styles.tabBtn, ...styles.tabBtnActive, borderBottomColor: tab.color }
+                                        : styles.tabBtn}
                                 >
-                                    <span className="text-[1.1rem]">{tab.icon}</span>
-                                    <span className="hidden sm:inline">{tab.label}</span>
-                                    <span className="inline-flex items-center justify-center min-w-[24px] h-6 rounded-full text-xs font-bold px-1.5 transition-all duration-250" style={{
+                                    <span style={styles.tabIcon}>{tab.icon}</span>
+                                    <span className="tab-label" style={styles.tabLabel}>{tab.label}</span>
+                                    <span style={{
+                                        ...styles.tabCount,
                                         backgroundColor: activeTab === tab.key ? tab.color : '#ecf0f1',
                                         color: activeTab === tab.key ? 'white' : '#7f8c8d',
                                     }}>
@@ -312,25 +309,25 @@ export default function FinesManagement() {
                             ))}
                         </div>
 
-                        <div className="flex-1 max-w-full md:max-w-[400px]">
-                            <div className="flex items-center bg-white rounded-xl px-4 h-[46px] border-[1.5px] border-[#dfe6e9] shadow-sm focus-within:border-[#3498db] focus-within:ring-[3px] focus-within:ring-[#3498db]/15 transition-all">
-                                <span className="text-[1.1rem] mr-2">🔍</span>
+                        <div className="fines-search" style={styles.searchBar}>
+                            <div style={styles.searchWrap}>
+                                <span style={styles.searchIconSpan}>🔍</span>
                                 <input
                                     type="text"
                                     placeholder="Search member or reason…"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="flex-1 py-2.5 border-none outline-none text-[0.95rem] bg-transparent w-full"
+                                    style={styles.searchInput}
                                 />
                                 {searchQuery && (
-                                    <button onClick={() => setSearchQuery('')} className="bg-transparent border-none cursor-pointer text-[0.9rem] text-[#95a5a6] p-1 ml-1 hover:text-[#e74c3c]">✕</button>
+                                    <button onClick={() => setSearchQuery('')} style={styles.clearSearch}>✕</button>
                                 )}
                             </div>
                         </div>
                     </div>
 
                     {!loading && (
-                        <p className="text-[0.85rem] text-[#95a5a6] mb-4 mt-0">
+                        <p style={styles.resultsInfo}>
                             Showing <strong>{currentList.length}</strong> records
                             {searchQuery && <> matching &quot;<em>{searchQuery}</em>&quot;</>}
                         </p>
@@ -338,24 +335,24 @@ export default function FinesManagement() {
 
                     {/* ── Loading ── */}
                     {loading && (
-                        <div className="text-center py-16">
-                            <div className="w-10 h-10 border-4 border-[#dfe6e9] border-t-[#3498db] rounded-full animate-spin mx-auto mb-4"></div>
-                            <p className="text-[#7f8c8d] text-base">Loading financial records…</p>
+                        <div style={styles.loadingWrap}>
+                            <div style={styles.spinner}></div>
+                            <p style={styles.loadingText}>Loading financial records…</p>
                         </div>
                     )}
 
                     {/* ── Content Area ── */}
                     {!loading && (
-                        <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+                        <div style={styles.contentCard}>
                             {currentList.length === 0 ? (
-                                <div className="text-center py-20 px-8">
-                                    <div className="text-[3.5rem] mb-4">
+                                <div style={styles.emptyState}>
+                                    <div style={styles.emptyIcon}>
                                         {activeTab === 'all' ? '💳' : activeTab === 'unpaid' ? '🎉' : '⏳'}
                                     </div>
-                                    <h3 className="text-[#2c3e50] mb-2 text-xl font-bold">
+                                    <h3 style={styles.emptyTitle}>
                                         {searchQuery ? 'No Matching Fines' : `No ${tabs.find(t => t.key === activeTab)?.label} Found`}
                                     </h3>
-                                    <p className="text-[#95a5a6] text-[0.95rem] max-w-[380px] mx-auto">
+                                    <p style={styles.emptyText}>
                                         {searchQuery
                                             ? 'Try adjusting your search criteria.'
                                             : activeTab === 'unpaid'
@@ -364,67 +361,67 @@ export default function FinesManagement() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="w-full overflow-x-auto hide-scrollbar">
-                                    <table className="w-full border-collapse min-w-[800px] text-left">
+                                <div style={styles.tableWrap}>
+                                    <table style={styles.table}>
                                         <thead>
                                             <tr>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1]">Member</th>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1]">Amount</th>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1]">Paid</th>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1]">Outstanding</th>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1]">Reason</th>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1]">Issue Date</th>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1] text-center">Status</th>
-                                                <th className="p-4 bg-[#f8f9fb] text-[#7f8c8d] text-xs uppercase tracking-wider font-bold border-b-2 border-[#ecf0f1] text-center">Actions</th>
+                                                <th style={styles.th}>Member</th>
+                                                <th style={styles.th}>Amount</th>
+                                                <th style={styles.th}>Paid</th>
+                                                <th style={styles.th}>Outstanding</th>
+                                                <th style={styles.th}>Reason</th>
+                                                <th style={styles.th}>Issue Date</th>
+                                                <th style={{ ...styles.th, textAlign: 'center' }}>Status</th>
+                                                <th style={{ ...styles.th, textAlign: 'center' }}>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {currentList.map(fine => {
                                                 const outstanding = fine.amount - (fine.amountPaid || 0);
                                                 return (
-                                                    <tr key={fine.id} className="border-b border-[#f1f3f5] transition-colors hover:bg-[#f0f7ff]">
-                                                        <td className="p-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-[38px] h-[38px] rounded-full bg-gradient-to-br from-[#3498db] to-[#2980b9] text-white flex items-center justify-center text-[0.9rem] font-bold shrink-0">
+                                                    <tr key={fine.id} className="fines-row" style={styles.tr}>
+                                                        <td style={styles.td}>
+                                                            <div style={styles.cellWithAvatar}>
+                                                                <div style={styles.avatarSmall}>
                                                                     {(members[fine.memberID]?.name || '?').charAt(0).toUpperCase()}
                                                                 </div>
                                                                 <div>
-                                                                    <strong className="text-[#2c3e50]">{members[fine.memberID]?.name || fine.memberID}</strong>
-                                                                    <div className="text-[0.8rem] text-[#95a5a6]">
+                                                                    <strong>{members[fine.memberID]?.name || fine.memberID}</strong>
+                                                                    <div style={{ fontSize: '0.8rem', color: '#95a5a6' }}>
                                                                         {members[fine.memberID]?.contact || ''}
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="p-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle font-semibold">{formatCurrency(fine.amount)}</td>
-                                                        <td className="p-4 py-3.5 text-[0.92rem] align-middle text-[#27ae60]">{formatCurrency(fine.amountPaid || 0)}</td>
-                                                        <td className="p-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle">
-                                                            <span className={outstanding > 0 ? "text-[#e74c3c] font-bold" : ""}>
+                                                        <td style={{ ...styles.td, fontWeight: '600' }}>{formatCurrency(fine.amount)}</td>
+                                                        <td style={{ ...styles.td, color: '#27ae60' }}>{formatCurrency(fine.amountPaid || 0)}</td>
+                                                        <td style={styles.td}>
+                                                            <span style={outstanding > 0 ? styles.outstandingAmount : {}}>
                                                                 {formatCurrency(outstanding)}
                                                             </span>
                                                         </td>
-                                                        <td className="p-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle max-w-[200px]">
-                                                            <div className="whitespace-nowrap overflow-hidden text-ellipsis" title={fine.reason}>
+                                                        <td style={{ ...styles.td, maxWidth: '200px' }}>
+                                                            <div style={styles.truncateText} title={fine.reason}>
                                                                 {fine.reason}
                                                             </div>
                                                         </td>
-                                                        <td className="p-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle">{formatDate(fine.issueDate)}</td>
-                                                        <td className="p-4 py-3.5 text-[0.92rem] align-middle text-center">
+                                                        <td style={styles.td}>{formatDate(fine.issueDate)}</td>
+                                                        <td style={{ ...styles.td, textAlign: 'center' }}>
                                                             {getStatusBadge(fine.status)}
                                                         </td>
-                                                        <td className="p-4 py-3.5 text-[0.92rem] align-middle text-center">
-                                                            <div className="flex gap-2 justify-center">
+                                                        <td style={{ ...styles.td, textAlign: 'center' }}>
+                                                            <div style={styles.actionBtns}>
                                                                 {(fine.status === 'UNPAID' || fine.status === 'PARTIALLY_PAID') && (
                                                                     <>
                                                                         <button
-                                                                            className="px-3 py-2 bg-gradient-to-br from-[#2ecc71] to-[#27ae60] text-white border-none rounded-lg cursor-pointer text-[0.85rem] font-semibold transition-all duration-200 shadow-[0_2px_8px_rgba(46,204,113,0.3)] hover:-translate-y-0.5"
+                                                                            style={styles.btnPaySmall}
                                                                             onClick={() => openPaymentModal(fine)}
                                                                             title="Record Payment"
                                                                         >
                                                                             💵 Pay
                                                                         </button>
                                                                         <button
-                                                                            className="px-3 py-2 bg-white text-[#7f8c8d] border-[1.5px] border-[#bdc3c7] rounded-lg cursor-pointer text-[0.85rem] font-semibold transition-all duration-200 hover:bg-gray-50 hover:-translate-y-0.5"
+                                                                            style={styles.btnWaiveSmall}
                                                                             onClick={() => handleWaiveFine(fine.id)}
                                                                             title="Waive Fine"
                                                                         >
@@ -446,71 +443,80 @@ export default function FinesManagement() {
                 </main>
             </div>
 
-            {/* Payment Modal */}
+            {/* ── Payment Modal ── */}
             {showPaymentModal && selectedFine && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000] backdrop-blur-sm" onClick={() => !processingPayment && setShowPaymentModal(false)}>
-                    <div className="bg-white rounded-2xl p-8 max-w-[480px] w-[95%] max-h-[90vh] overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.15)] animate-modalFadeIn" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-between items-center mb-6 border-b border-[#f1f3f5] pb-4">
-                            <h2 className="text-[#2c3e50] m-0 text-[1.4rem] font-bold">Record Payment</h2>
-                            <button className="bg-transparent border-none text-[1.4rem] text-[#95a5a6] cursor-pointer p-1 leading-none hover:text-[#e74c3c]" onClick={() => !processingPayment && setShowPaymentModal(false)} disabled={processingPayment}>✕</button>
+                <div style={styles.modalOverlay} onClick={() => !processingPayment && setShowPaymentModal(false)}>
+                    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+                        <div style={styles.modalHeader}>
+                            <h2 style={styles.modalTitle}>💵 Record Payment</h2>
+                            <button onClick={() => !processingPayment && setShowPaymentModal(false)} style={styles.modalClose}>✕</button>
                         </div>
-
-                        {error && (
-                            <div className="bg-gradient-to-br from-[#fff5f5] to-[#ffe3e3] text-[#c0392b] py-3.5 px-5 rounded-xl mb-5 flex justify-between items-center border border-[#f5c6cb] animate-fadeSlideIn">
-                                {error}
-                                <button className="bg-transparent border-none text-[1.4rem] cursor-pointer text-inherit p-0 leading-none" onClick={() => setError('')}>✕</button>
-                            </div>
-                        )}
-
-                        <div className="mb-6">
-                            <div className="bg-[#f8f9fb] px-5 py-4 rounded-xl mb-6 border border-[#dfe6e9] flex flex-col gap-2">
-                                <div className="flex justify-between text-[0.95rem] text-[#34495e]">
+                        <div style={styles.modalContent}>
+                            {error && (
+                                <div style={{ ...styles.alertError, marginTop: 0, marginBottom: '1rem' }}>
+                                    <span>❌ {error}</span>
+                                </div>
+                            )}
+                            <div style={styles.modalSummaryBox}>
+                                <div style={styles.summaryRow}>
                                     <span>Member:</span>
-                                    <strong>{members[selectedFine.memberID]?.name || selectedFine.memberID}</strong>
+                                    <strong>{members[selectedFine.memberID]?.name}</strong>
                                 </div>
-                                <div className="flex justify-between text-[0.95rem] text-[#34495e]">
-                                    <span>Reason:</span>
-                                    <strong className="text-right max-w-[60%]">{selectedFine.reason}</strong>
-                                </div>
-                                <div className="flex justify-between text-[0.95rem] text-[#34495e]">
+                                <div style={styles.summaryRow}>
                                     <span>Total Fine:</span>
                                     <strong>{formatCurrency(selectedFine.amount)}</strong>
                                 </div>
-                                <div className="flex justify-between text-[0.95rem] text-[#34495e]">
-                                    <span>Previously Paid:</span>
-                                    <strong className="text-[#27ae60]">{formatCurrency(selectedFine.amountPaid || 0)}</strong>
+                                <div style={styles.summaryRow}>
+                                    <span>Already Paid:</span>
+                                    <strong style={{ color: '#27ae60' }}>{formatCurrency(selectedFine.amountPaid || 0)}</strong>
                                 </div>
-                                <hr className="border-t border-[#dfe6e9] my-1" />
-                                <div className="flex justify-between text-[0.95rem] text-[#34495e]">
-                                    <span>Current Outstanding:</span>
-                                    <strong className="text-[#e74c3c] text-lg">{formatCurrency(selectedFine.amount - (selectedFine.amountPaid || 0))}</strong>
+                                <div style={{ ...styles.summaryRow, borderTop: '1px solid #dfe6e9', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                                    <span>Outstanding:</span>
+                                    <strong style={{ color: '#e74c3c' }}>{formatCurrency(selectedFine.amount - (selectedFine.amountPaid || 0))}</strong>
                                 </div>
                             </div>
 
-                            <div className="mb-5 flex flex-col gap-1.5">
-                                <label className="text-[0.88rem] font-semibold text-[#2c3e50]">Payment Amount <span className="text-[#e74c3c]">*</span></label>
-                                <div className="flex items-center border-[1.5px] border-[#dfe6e9] rounded-lg bg-[#fafbfc] overflow-hidden focus-within:border-[#3498db] focus-within:ring-[3px] focus-within:ring-[#3498db]/15 transition-all">
-                                    <span className="py-3 px-3.5 bg-[#f1f3f5] text-[#7f8c8d] font-semibold border-r border-[#dfe6e9]">$</span>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Payment Amount <span style={styles.required}>*</span></label>
+                                <div style={styles.inputPrefixWrap}>
+                                    <span style={styles.inputPrefix}>$</span>
                                     <input
                                         type="number"
-                                        min="0.01"
-                                        step="0.01"
-                                        max={selectedFine.amount - (selectedFine.amountPaid || 0)}
+                                        style={styles.inputWithPrefix}
                                         value={paymentAmount}
                                         onChange={(e) => setPaymentAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        className="flex-1 py-3 px-3.5 border-none outline-none text-[0.95rem] bg-transparent"
+                                        step="0.01"
+                                        min="0.01"
+                                        max={selectedFine.amount - (selectedFine.amountPaid || 0)}
                                         disabled={processingPayment}
                                     />
                                 </div>
                             </div>
-                            <textarea
-                                style={{ ...styles.input, minHeight: '80px', resize: 'vertical' }}
-                                value={paymentNotes}
-                                onChange={(e) => setPaymentNotes(e.target.value)}
-                                placeholder="Add any relevant notes..."
-                                disabled={processingPayment}
-                            />
+
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Payment Method</label>
+                                <select
+                                    style={styles.input}
+                                    value={paymentMethod}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    disabled={processingPayment}
+                                >
+                                    <option value="CASH">💵 Cash</option>
+                                    <option value="CARD">💳 Card</option>
+                                    <option value="ONLINE">🌐 Online</option>
+                                </select>
+                            </div>
+
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Notes (optional)</label>
+                                <textarea
+                                    style={{ ...styles.input, minHeight: '80px', resize: 'vertical' }}
+                                    value={paymentNotes}
+                                    onChange={(e) => setPaymentNotes(e.target.value)}
+                                    placeholder="Add any relevant notes..."
+                                    disabled={processingPayment}
+                                />
+                            </div>
                         </div>
                         <div style={styles.modalActions}>
                             <button
@@ -525,14 +531,7 @@ export default function FinesManagement() {
                                 onClick={handleRecordPayment}
                                 disabled={processingPayment}
                             >
-                                {processingPayment ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        Processing…
-                                    </>
-                                ) : (
-                                    '✅ Confirm Payment'
-                                )}
+                                {processingPayment ? '⏳ Processing...' : '✅ Confirm Payment'}
                             </button>
                         </div>
                     </div>
@@ -541,226 +540,686 @@ export default function FinesManagement() {
 
             {/* ── Manual Fine Modal ── */}
             {showManualFineModal && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000] backdrop-blur-sm" onClick={() => !processingManualFine && setShowManualFineModal(false)}>
-                    <div className="bg-white rounded-2xl p-8 max-w-[480px] w-[95%] max-h-[90vh] overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.15)] animate-modalFadeIn" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-between items-center mb-6 border-b border-[#f1f3f5] pb-4">
-                            <h2 className="text-[#2c3e50] m-0 text-[1.4rem] font-bold">Issue Manual Fine</h2>
-                            <button className="bg-transparent border-none text-[1.4rem] text-[#95a5a6] cursor-pointer p-1 leading-none hover:text-[#e74c3c]" onClick={() => !processingManualFine && setShowManualFineModal(false)} disabled={processingManualFine}>✕</button>
+                <div style={styles.modalOverlay} onClick={() => !processingManualFine && setShowManualFineModal(false)}>
+                    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+                        <div style={styles.modalHeader}>
+                            <h2 style={styles.modalTitle}>＋ Create Manual Fine</h2>
+                            <button onClick={() => !processingManualFine && setShowManualFineModal(false)} style={styles.modalClose}>✕</button>
                         </div>
 
-                        {error && (
-                            <div className="bg-gradient-to-br from-[#fff5f5] to-[#ffe3e3] text-[#c0392b] py-3.5 px-5 rounded-xl mb-5 flex justify-between items-center border border-[#f5c6cb] animate-fadeSlideIn">
-                                {error}
-                                <button className="bg-transparent border-none text-[1.4rem] cursor-pointer text-inherit p-0 leading-none" onClick={() => setError('')}>✕</button>
-                            </div>
-                        )}
-
-                        <div className="mb-6">
-                            <div className="mb-5 flex flex-col gap-1.5">
-                                <label className="text-[0.88rem] font-semibold text-[#2c3e50]">Member <span className="text-[#e74c3c]">*</span></label>
+                        <div style={styles.modalContent}>
+                            {error && (
+                                <div style={{ ...styles.alertError, marginTop: 0, marginBottom: '1rem' }}>
+                                    <span>❌ {error}</span>
+                                </div>
+                            )}
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Member <span style={styles.required}>*</span></label>
                                 <select
-                                    value={manualFineData.memberID}
-                                    onChange={(e) => setManualFineData({ ...manualFineData, memberID: e.target.value })}
-                                    className="w-full py-3 px-3.5 border-[1.5px] border-[#dfe6e9] rounded-lg text-[0.95rem] bg-[#fafbfc] text-[#2c3e50] focus:border-[#3498db] focus:ring-[3px] focus:ring-[#3498db]/15 outline-none transition-all"
+                                    style={styles.input}
+                                    value={manualFineMemberID}
+                                    onChange={(e) => setManualFineMemberID(e.target.value)}
                                     disabled={processingManualFine}
                                 >
-                                    <option value="">Select a member...</option>
+                                    <option value="">-- Select Member --</option>
                                     {Object.values(members).map(member => (
                                         <option key={member.id} value={member.id}>
-                                            {member.name} ({member.email})
+                                            {member.name} ({member.contact})
                                         </option>
                                     ))}
                                 </select>
                             </div>
 
-                            <div className="mb-5 flex flex-col gap-1.5">
-                                <label className="text-[0.88rem] font-semibold text-[#2c3e50]">Fine Amount <span className="text-[#e74c3c]">*</span></label>
-                                <div className="flex items-center border-[1.5px] border-[#dfe6e9] rounded-lg bg-[#fafbfc] overflow-hidden focus-within:border-[#3498db] focus-within:ring-[3px] focus-within:ring-[#3498db]/15 transition-all">
-                                    <span className="py-3 px-3.5 bg-[#f1f3f5] text-[#7f8c8d] font-semibold border-r border-[#dfe6e9]">$</span>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Amount <span style={styles.required}>*</span></label>
+                                <div style={styles.inputPrefixWrap}>
+                                    <span style={styles.inputPrefix}>$</span>
                                     <input
                                         type="number"
-                                        min="0.01"
+                                        style={styles.inputWithPrefix}
+                                        value={manualFineAmount}
+                                        onChange={(e) => setManualFineAmount(e.target.value)}
                                         step="0.01"
-                                        value={manualFineData.amount}
-                                        onChange={(e) => setManualFineData({ ...manualFineData, amount: e.target.value })}
+                                        min="0.01"
                                         placeholder="0.00"
-                                        className="flex-1 py-3 px-3.5 border-none outline-none text-[0.95rem] bg-transparent"
                                         disabled={processingManualFine}
                                     />
                                 </div>
                             </div>
 
-                            <div className="mb-5 flex flex-col gap-1.5">
-                                <label className="text-[0.88rem] font-semibold text-[#2c3e50]">Reason <span className="text-[#e74c3c]">*</span></label>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Reason <span style={styles.required}>*</span></label>
                                 <textarea
-                                    value={manualFineData.reason}
-                                    onChange={(e) => setManualFineData({ ...manualFineData.reason, reason: e.target.value })}
-                                    placeholder="Brief description of why the fine is being issued..."
-                                    rows="3"
-                                    className="w-full py-3 px-3.5 border-[1.5px] border-[#dfe6e9] rounded-lg text-[0.95rem] bg-[#fafbfc] text-[#2c3e50] focus:border-[#3498db] focus:ring-[3px] focus:ring-[#3498db]/15 outline-none transition-all resize-y min-h-[80px]"
+                                    style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+                                    value={manualFineReason}
+                                    onChange={(e) => setManualFineReason(e.target.value)}
+                                    placeholder="Enter detailed reason for the fine..."
                                     disabled={processingManualFine}
                                 />
                             </div>
                         </div>
-
-                        <div className="flex justify-end gap-3 mt-8 border-t border-[#f1f3f5] pt-6">
+                        <div style={styles.modalActions}>
                             <button
-                                className="py-3 px-6 bg-white text-[#7f8c8d] border-[1.5px] border-[#dfe6e9] rounded-lg cursor-pointer text-[0.95rem] font-semibold transition-all duration-200 hover:bg-gray-50"
-                                onClick={() => setShowManualFineModal(false)}
+                                style={{ ...styles.btnFormCancel, opacity: processingManualFine ? 0.5 : 1 }}
+                                onClick={() => {
+                                    if (!processingManualFine) {
+                                        setShowManualFineModal(false);
+                                        resetManualFineForm();
+                                    }
+                                }}
                                 disabled={processingManualFine}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="py-3 px-6 bg-gradient-to-br from-[#e74c3c] to-[#c0392b] text-white border-none rounded-lg cursor-pointer text-[0.95rem] font-semibold transition-all duration-200 shadow-[0_4px_14px_rgba(231,76,60,0.3)] hover:-translate-y-0.5 disabled:opacity-70 flex items-center gap-2"
-                                onClick={handleManualFineSubmit}
-                                disabled={processingManualFine || !manualFineData.memberID || !manualFineData.amount || !manualFineData.reason}
+                                style={{ ...styles.btnSubmit, opacity: processingManualFine ? 0.7 : 1 }}
+                                onClick={handleCreateManualFine}
+                                disabled={processingManualFine}
                             >
-                                {processingManualFine ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        Processing…
-                                    </>
-                                ) : (
-                                    'Issue Fine'
-                                )}
+                                {processingManualFine ? '⏳ Creating...' : '＋ Issue Fine'}
                             </button>
                         </div>
                     </div>
                 </div>
-            )
-            }
+            )}
 
             {/* Injected responsive + animation styles */}
             <style>{`
-            @keyframes fadeSlideIn {
-                from { opacity: 0; transform: translateY(-12px); }
-                to   { opacity: 1; transform: translateY(0); }
-            }
-            @keyframes slideInRight {
-                from { opacity: 0; transform: translateX(20px); }
-                to   { opacity: 1; transform: translateX(0); }
-            }
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-            @keyframes modalFadeIn {
-                from { opacity: 0; transform: scale(0.95) translateY(10px); }
-                to   { opacity: 1; transform: scale(1) translateY(0); }
-            }
-            
-            /* Responsive Utilities */
-            @media (max-width: 1024px) {
-                .fines-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-            }
-            @media (max-width: 768px) {
-                main { margin-left: 0 !important; padding: 1rem !important; }
-                .fines-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 0.75rem !important; }
-            }
-            @media (max-width: 480px) {
-                .fines-stats-grid { grid-template-columns: 1fr !important; }
-            }
+        @keyframes fadeSlideIn {
+                    from { opacity: 0; transform: translateY(-12px); }
+                    to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes modalFadeIn {
+                    from { opacity: 0; transform: scale(0.95); }
+                    to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes spin {
+                    to { transform: rotate(360deg); }
+        }
 
-            /* Custom Webkit Scrollbar */
-            .hide-scrollbar::-webkit-scrollbar { display: none; }
-            .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        `}</style>
+        @media(max - width: 1024px) {
+                    .fines - stats - grid {
+        grid - template - columns: repeat(2, 1fr)!important;
+    }
+}
+@media(max - width: 768px) {
+                    main {
+        margin - left: 0!important;
+        padding: 1rem!important;
+    }
+                    .fines - stats - grid {
+        grid - template - columns: 1fr 1fr!important;
+        gap: 0.75rem!important;
+    }
+                    .fines - toolbar {
+        flex - direction: column!important;
+        align - items: stretch!important;
+    }
+                    .fines - tabs {
+        overflow - x: auto!important;
+        gap: 0!important;
+    }
+                    .fines - search {
+        width: 100 % !important;
+    }
+}
+@media(max - width: 480px) {
+                    .fines - stats - grid {
+        grid - template - columns: 1fr!important;
+    }
+                    .tab - label {
+        display: none;
+    }
+                    .fines - tabs button {
+        padding: 0.65rem 0.5rem!important;
+    }
+}
+
+                .fines - row:hover {
+    background - color: #f0f7ff!important;
+}
+input: focus, select: focus, textarea:focus {
+    border - color: #3498db!important;
+    outline: none;
+    box - shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+`}</style>
         </>
     );
 }
 
-export default Fines;
-{
-    showManualFineModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000] backdrop-blur-sm" onClick={() => !processingManualFine && setShowManualFineModal(false)}>
-            <div className="bg-white rounded-2xl p-8 max-w-[480px] w-[95%] max-h-[90vh] overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.15)] animate-modalFadeIn" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6 border-b border-[#f1f3f5] pb-4">
-                    <h2 className="text-[#2c3e50] m-0 text-[1.4rem] font-bold">Issue Manual Fine</h2>
-                    <button className="bg-transparent border-none text-[1.4rem] text-[#95a5a6] cursor-pointer p-1 leading-none hover:text-[#e74c3c]" onClick={() => !processingManualFine && setShowManualFineModal(false)} disabled={processingManualFine}>✕</button>
-                </div>
+/* ──────────────────────────────────────────────────────────────── */
+/*  Styles                                                         */
+/* ──────────────────────────────────────────────────────────────── */
+const styles = {
+    /* Layout */
+    layout: { display: 'flex' },
+    main: {
+        flex: 1,
+        marginLeft: '260px',
+        padding: '2rem',
+        backgroundColor: '#f5f6fa',
+        minHeight: 'calc(100vh - 60px)',
+    },
 
-                {error && (
-                    <div className="bg-gradient-to-br from-[#fff5f5] to-[#ffe3e3] text-[#c0392b] py-3.5 px-5 rounded-xl mb-5 flex justify-between items-center border border-[#f5c6cb] animate-fadeSlideIn">
-                        {error}
-                        <button className="bg-transparent border-none text-[1.4rem] cursor-pointer text-inherit p-0 leading-none" onClick={() => setError('')}>✕</button>
-                    </div>
-                )}
+    /* Page Header */
+    pageHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.75rem',
+        flexWrap: 'wrap',
+        gap: '1rem',
+    },
+    pageTitle: {
+        fontSize: '1.85rem',
+        fontWeight: '700',
+        color: '#2c3e50',
+        margin: 0,
+    },
+    pageSubtitle: {
+        color: '#7f8c8d',
+        marginTop: '0.35rem',
+        fontSize: '0.95rem',
+    },
+    headerActions: {
+        display: 'flex',
+        gap: '0.75rem',
+    },
+    btnCreateFine: {
+        padding: '0.75rem 1.25rem',
+        background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+        color: 'white',
+        border: 'none',
+        borderRadius: '10px',
+        cursor: 'pointer',
+        fontSize: '0.95rem',
+        fontWeight: '600',
+        boxShadow: '0 4px 14px rgba(231,76,60,0.3)',
+        transition: 'all 0.3s',
+    },
+    btnRefresh: {
+        padding: '0.75rem 1rem',
+        background: 'white',
+        color: '#34495e',
+        border: '1.5px solid #dfe6e9',
+        borderRadius: '10px',
+        cursor: 'pointer',
+        fontSize: '1rem',
+        transition: 'all 0.3s',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+    },
 
-                <div className="mb-6">
-                    <div className="mb-5 flex flex-col gap-1.5">
-                        <label className="text-[0.88rem] font-semibold text-[#2c3e50]">Member <span className="text-[#e74c3c]">*</span></label>
-                        <select
-                            value={manualFineData.memberID}
-                            onChange={(e) => setManualFineData({ ...manualFineData, memberID: e.target.value })}
-                            className="w-full py-3 px-3.5 border-[1.5px] border-[#dfe6e9] rounded-lg text-[0.95rem] bg-[#fafbfc] text-[#2c3e50] focus:border-[#3498db] focus:ring-[3px] focus:ring-[#3498db]/15 outline-none transition-all"
-                            disabled={processingManualFine}
-                        >
-                            <option value="">Select a member...</option>
-                            {Object.values(members).map(member => (
-                                <option key={member.id} value={member.id}>
-                                    {member.name} ({member.email})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+    /* Stats Grid */
+    statsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '1rem',
+        marginBottom: '1.5rem',
+    },
+    statCard: {
+        backgroundColor: 'white',
+        padding: '1.25rem',
+        borderRadius: '12px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        transition: 'transform 0.25s, box-shadow 0.25s',
+    },
+    statIconWrap: {
+        width: '48px',
+        height: '48px',
+        borderRadius: '12px',
+        backgroundColor: '#f8f9fb',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+    },
+    statIcon: { fontSize: '1.5rem' },
+    statContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+    },
+    statValue: { fontSize: '1.5rem', fontWeight: '700', color: '#2c3e50', lineHeight: 1.2 },
+    statLabel: { fontSize: '0.85rem', color: '#7f8c8d', fontWeight: '600', marginTop: '0.2rem' },
+    statSubText: { fontSize: '0.75rem', color: '#bdc3c7', marginTop: '0.1rem' },
 
-                    <div className="mb-5 flex flex-col gap-1.5">
-                        <label className="text-[0.88rem] font-semibold text-[#2c3e50]">Fine Amount <span className="text-[#e74c3c]">*</span></label>
-                        <div className="flex items-center border-[1.5px] border-[#dfe6e9] rounded-lg bg-[#fafbfc] overflow-hidden focus-within:border-[#3498db] focus-within:ring-[3px] focus-within:ring-[#3498db]/15 transition-all">
-                            <span className="py-3 px-3.5 bg-[#f1f3f5] text-[#7f8c8d] font-semibold border-r border-[#dfe6e9]">$</span>
-                            <input
-                                type="number"
-                                min="0.01"
-                                step="0.01"
-                                value={manualFineData.amount}
-                                onChange={(e) => setManualFineData({ ...manualFineData, amount: e.target.value })}
-                                placeholder="0.00"
-                                className="flex-1 py-3 px-3.5 border-none outline-none text-[0.95rem] bg-transparent"
-                                disabled={processingManualFine}
-                            />
-                        </div>
-                    </div>
+    /* Alerts */
+    alertError: {
+        background: 'linear-gradient(135deg, #fff5f5, #ffe0e0)',
+        color: '#c0392b',
+        padding: '0.85rem 1.25rem',
+        borderRadius: '10px',
+        marginBottom: '1.25rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        border: '1px solid #f5c6cb',
+        animation: 'fadeSlideIn 0.3s ease',
+    },
+    alertSuccess: {
+        background: 'linear-gradient(135deg, #f0fff4, #d4edda)',
+        color: '#155724',
+        padding: '0.85rem 1.25rem',
+        borderRadius: '10px',
+        marginBottom: '1.25rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        border: '1px solid #c3e6cb',
+        animation: 'fadeSlideIn 0.3s ease',
+    },
+    alertClose: {
+        background: 'none',
+        border: 'none',
+        fontSize: '1.4rem',
+        cursor: 'pointer',
+        color: 'inherit',
+        padding: '0 0.4rem',
+        lineHeight: 1,
+    },
 
-                    <div className="mb-5 flex flex-col gap-1.5">
-                        <label className="text-[0.88rem] font-semibold text-[#2c3e50]">Reason <span className="text-[#e74c3c]">*</span></label>
-                        <textarea
-                            value={manualFineData.reason}
-                            onChange={(e) => setManualFineData({ ...manualFineData.reason, reason: e.target.value })}
-                            placeholder="Brief description of why the fine is being issued..."
-                            rows="3"
-                            className="w-full py-3 px-3.5 border-[1.5px] border-[#dfe6e9] rounded-lg text-[0.95rem] bg-[#fafbfc] text-[#2c3e50] focus:border-[#3498db] focus:ring-[3px] focus:ring-[#3498db]/15 outline-none transition-all resize-y min-h-[80px]"
-                            disabled={processingManualFine}
-                        />
-                    </div>
-                </div>
+    /* Toolbar / Tabs */
+    toolbar: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '1rem',
+        marginBottom: '0.75rem',
+        flexWrap: 'wrap',
+    },
+    tabsBar: {
+        display: 'flex',
+        gap: '0.25rem',
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '0.4rem',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+    },
+    tabBtn: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        padding: '0.75rem 1.25rem',
+        border: 'none',
+        borderBottom: '3px solid transparent',
+        background: 'transparent',
+        cursor: 'pointer',
+        fontSize: '0.9rem',
+        color: '#7f8c8d',
+        borderRadius: '8px',
+        transition: 'all 0.25s',
+        fontWeight: '500',
+    },
+    tabBtnActive: {
+        color: '#2c3e50',
+        fontWeight: '700',
+        backgroundColor: '#f8f9fb',
+    },
+    tabIcon: { fontSize: '1.1rem' },
+    tabCount: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '24px',
+        height: '24px',
+        borderRadius: '12px',
+        fontSize: '0.75rem',
+        fontWeight: '700',
+        padding: '0 0.4rem',
+        transition: 'all 0.25s',
+    },
+    searchBar: {
+        flex: 1,
+        maxWidth: '400px',
+    },
+    searchWrap: {
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        borderRadius: '10px',
+        padding: '0 1rem',
+        height: '46px',
+        border: '1.5px solid #dfe6e9',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+    },
+    searchIconSpan: { fontSize: '1.1rem', marginRight: '0.5rem' },
+    searchInput: {
+        flex: 1,
+        padding: '0.7rem 0',
+        border: 'none',
+        outline: 'none',
+        fontSize: '0.95rem',
+        backgroundColor: 'transparent',
+    },
+    clearSearch: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        fontSize: '0.9rem',
+        color: '#95a5a6',
+        padding: '0.25rem',
+    },
+    resultsInfo: {
+        fontSize: '0.85rem',
+        color: '#95a5a6',
+        marginBottom: '1rem',
+        marginTop: '0',
+    },
 
-                <div className="flex justify-end gap-3 mt-8 border-t border-[#f1f3f5] pt-6">
-                    <button
-                        className="py-3 px-6 bg-white text-[#7f8c8d] border-[1.5px] border-[#dfe6e9] rounded-lg cursor-pointer text-[0.95rem] font-semibold transition-all duration-200 hover:bg-gray-50"
-                        onClick={() => setShowManualFineModal(false)}
-                        disabled={processingManualFine}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        className="py-3 px-6 bg-gradient-to-br from-[#e74c3c] to-[#c0392b] text-white border-none rounded-lg cursor-pointer text-[0.95rem] font-semibold transition-all duration-200 shadow-[0_4px_14px_rgba(231,76,60,0.3)] hover:-translate-y-0.5 disabled:opacity-70 flex items-center gap-2"
-                        onClick={handleManualFineSubmit}
-                        disabled={processingManualFine || !manualFineData.memberID || !manualFineData.amount || !manualFineData.reason}
-                    >
-                        {processingManualFine ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                Processing…
-                            </>
-                        ) : (
-                            'Issue Fine'
-                        )}
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
-}
-        </>
-    );
-}
+    /* Loading / Empty State */
+    loadingWrap: {
+        textAlign: 'center',
+        padding: '4rem',
+    },
+    spinner: {
+        width: '40px',
+        height: '40px',
+        border: '4px solid #dfe6e9',
+        borderTopColor: '#3498db',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+        margin: '0 auto 1rem',
+    },
+    loadingText: { color: '#7f8c8d', fontSize: '1rem' },
+
+    contentCard: {
+        backgroundColor: 'white',
+        borderRadius: '14px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        overflow: 'hidden',
+    },
+    emptyState: {
+        textAlign: 'center',
+        padding: '5rem 2rem',
+    },
+    emptyIcon: { fontSize: '3.5rem', marginBottom: '1rem' },
+    emptyTitle: { color: '#2c3e50', marginBottom: '0.5rem', fontSize: '1.25rem' },
+    emptyText: { color: '#95a5a6', fontSize: '0.95rem', maxWidth: '380px', margin: '0 auto' },
+
+    /* Table */
+    tableWrap: {
+        overflowX: 'auto',
+    },
+    table: {
+        width: '100%',
+        borderCollapse: 'collapse',
+        minWidth: '800px',
+    },
+    th: {
+        textAlign: 'left',
+        padding: '1rem 1.25rem',
+        backgroundColor: '#f8f9fb',
+        color: '#7f8c8d',
+        fontSize: '0.8rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
+        fontWeight: '700',
+        borderBottom: '2px solid #ecf0f1',
+    },
+    tr: {
+        borderBottom: '1px solid #f1f3f5',
+        transition: 'background-color 0.2s',
+    },
+    td: {
+        padding: '0.85rem 1.25rem',
+        fontSize: '0.92rem',
+        color: '#2c3e50',
+        verticalAlign: 'middle',
+    },
+    cellWithAvatar: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.85rem',
+    },
+    avatarSmall: {
+        width: '38px',
+        height: '38px',
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg, #3498db, #2980b9)',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '0.9rem',
+        fontWeight: '700',
+        flexShrink: 0,
+    },
+    truncateText: {
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    outstandingAmount: {
+        color: '#e74c3c',
+        fontWeight: '700',
+    },
+
+    /* Badges */
+    badgeUnpaid: {
+        display: 'inline-block',
+        padding: '0.25rem 0.75rem',
+        backgroundColor: '#fdecea',
+        color: '#e74c3c',
+        borderRadius: '20px',
+        fontSize: '0.8rem',
+        fontWeight: '600',
+    },
+    badgePartial: {
+        display: 'inline-block',
+        padding: '0.25rem 0.75rem',
+        backgroundColor: '#fff3cd',
+        color: '#d35400',
+        borderRadius: '20px',
+        fontSize: '0.8rem',
+        fontWeight: '600',
+    },
+    badgePaid: {
+        display: 'inline-block',
+        padding: '0.25rem 0.75rem',
+        backgroundColor: '#e8f8f0',
+        color: '#27ae60',
+        borderRadius: '20px',
+        fontSize: '0.8rem',
+        fontWeight: '600',
+    },
+    badgeWaived: {
+        display: 'inline-block',
+        padding: '0.25rem 0.75rem',
+        backgroundColor: '#f1f3f5',
+        color: '#7f8c8d',
+        borderRadius: '20px',
+        fontSize: '0.8rem',
+        fontWeight: '600',
+    },
+    badgeDefault: {
+        display: 'inline-block',
+        padding: '0.25rem 0.75rem',
+        backgroundColor: '#f1f3f5',
+        color: '#2c3e50',
+        borderRadius: '20px',
+        fontSize: '0.8rem',
+        fontWeight: '600',
+    },
+
+    /* Actions */
+    actionBtns: {
+        display: 'flex',
+        gap: '0.5rem',
+        justifyContent: 'center',
+    },
+    btnPaySmall: {
+        padding: '0.45rem 0.75rem',
+        background: 'linear-gradient(135deg, #2ecc71, #27ae60)',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+        boxShadow: '0 2px 8px rgba(46,204,113,0.3)',
+    },
+    btnWaiveSmall: {
+        padding: '0.45rem 0.75rem',
+        background: 'white',
+        color: '#7f8c8d',
+        border: '1.5px solid #bdc3c7',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+    },
+
+    /* Modals */
+    modalOverlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        backdropFilter: 'blur(3px)',
+    },
+    modal: {
+        backgroundColor: '#ffffff',
+        borderRadius: '16px',
+        padding: '2rem',
+        maxWidth: '480px',
+        width: '95%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+        animation: 'modalFadeIn 0.3s ease-out',
+    },
+    modalHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.5rem',
+        borderBottom: '1px solid #f1f3f5',
+        paddingBottom: '1rem',
+    },
+    modalTitle: {
+        color: '#2c3e50',
+        margin: 0,
+        fontSize: '1.4rem',
+        fontWeight: '700',
+    },
+    modalClose: {
+        background: 'none',
+        border: 'none',
+        fontSize: '1.4rem',
+        color: '#95a5a6',
+        cursor: 'pointer',
+        padding: '0.2rem',
+        lineHeight: 1,
+    },
+    modalContent: {
+        marginBottom: '1.5rem',
+    },
+    modalSummaryBox: {
+        backgroundColor: '#f8f9fb',
+        padding: '1rem 1.25rem',
+        borderRadius: '10px',
+        marginBottom: '1.5rem',
+        border: '1px solid #dfe6e9',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+    },
+    summaryRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: '0.95rem',
+        color: '#34495e',
+    },
+    formGroup: {
+        marginBottom: '1.25rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.4rem',
+    },
+    label: {
+        fontSize: '0.88rem',
+        fontWeight: '600',
+        color: '#2c3e50',
+    },
+    required: {
+        color: '#e74c3c',
+    },
+    input: {
+        width: '100%',
+        padding: '0.75rem 0.9rem',
+        border: '1.5px solid #dfe6e9',
+        borderRadius: '8px',
+        fontSize: '0.95rem',
+        backgroundColor: '#fafbfc',
+        boxSizing: 'border-box',
+        transition: 'border-color 0.3s, box-shadow 0.3s',
+        color: '#2c3e50',
+    },
+    inputPrefixWrap: {
+        display: 'flex',
+        alignItems: 'center',
+        border: '1.5px solid #dfe6e9',
+        borderRadius: '8px',
+        backgroundColor: '#fafbfc',
+        overflow: 'hidden',
+    },
+    inputPrefix: {
+        padding: '0.75rem 0.9rem',
+        backgroundColor: '#f1f3f5',
+        color: '#7f8c8d',
+        fontWeight: '600',
+        borderRight: '1px solid #dfe6e9',
+    },
+    inputWithPrefix: {
+        flex: 1,
+        padding: '0.75rem 0.9rem',
+        border: 'none',
+        outline: 'none',
+        fontSize: '0.95rem',
+        backgroundColor: 'transparent',
+    },
+    modalActions: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: '0.75rem',
+        marginTop: '2rem',
+        borderTop: '1px solid #f1f3f5',
+        paddingTop: '1.5rem',
+    },
+    btnSubmit: {
+        padding: '0.75rem 1.5rem',
+        background: 'linear-gradient(135deg, #3498db, #2980b9)',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '0.95rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+        boxShadow: '0 4px 14px rgba(52,152,219,0.3)',
+    },
+    btnFormCancel: {
+        padding: '0.75rem 1.5rem',
+        backgroundColor: 'white',
+        color: '#7f8c8d',
+        border: '1.5px solid #dfe6e9',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '0.95rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+    },
+};

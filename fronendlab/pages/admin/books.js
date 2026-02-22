@@ -145,23 +145,20 @@ export default function BooksManagement() {
     return (
         <>
             <Navbar />
-            <div className="flex">
+            <div style={styles.layout}>
                 <Sidebar role="admin" />
-                <main className="flex-1 lg:ml-[260px] p-8 bg-[#f5f6fa] min-h-[calc(100vh-60px)]">
+                <main style={styles.main}>
                     {/* ── Page Header ── */}
-                    <div className="flex justify-between items-center mb-7 flex-wrap gap-4">
+                    <div style={styles.pageHeader}>
                         <div>
-                            <h1 className="text-[1.85rem] font-bold text-[#2c3e50] m-0">📚 Manage Books</h1>
-                            <p className="text-[#7f8c8d] mt-1.5 text-[0.95rem]">
+                            <h1 style={styles.pageTitle}>📚 Manage Books</h1>
+                            <p style={styles.pageSubtitle}>
                                 Organize, search, and manage your entire catalogue
                             </p>
                         </div>
                         <button
                             onClick={() => { setShowForm(!showForm); if (showForm) resetForm(); }}
-                            className={`px-6 py-3 border-none rounded-xl cursor-pointer text-[0.95rem] font-semibold transition-all duration-300 ${showForm
-                                ? 'bg-gradient-to-br from-[#95a5a6] to-[#7f8c8d] text-white shadow-[0_4px_14px_rgba(127,140,141,0.3)]'
-                                : 'bg-gradient-to-br from-[#2ecc71] to-[#27ae60] text-white shadow-[0_4px_14px_rgba(46,204,113,0.35)] tracking-[0.3px]'
-                                }`}
+                            style={showForm ? styles.btnCancel : styles.btnAdd}
                             disabled={loading}
                         >
                             {showForm ? '✕  Cancel' : '＋  Add New Book'}
@@ -169,107 +166,107 @@ export default function BooksManagement() {
                     </div>
 
                     {/* ── Stats Overview ── */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-white p-5 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center gap-4 transition-transform duration-250 border-l-4 border-l-[#3498db]">
-                            <span className="text-[2rem]">📖</span>
+                    <div className="books-stats-grid" style={styles.statsGrid}>
+                        <div style={{ ...styles.statCard, borderLeft: '4px solid #3498db' }}>
+                            <span style={styles.statIcon}>📖</span>
                             <div>
-                                <div className="text-[1.65rem] font-bold text-[#2c3e50]">{stats.total}</div>
-                                <div className="text-[0.82rem] text-[#95a5a6] mt-0.5 uppercase tracking-[0.5px]">Total Books</div>
+                                <div style={styles.statValue}>{stats.total}</div>
+                                <div style={styles.statLabel}>Total Books</div>
                             </div>
                         </div>
-                        <div className="bg-white p-5 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center gap-4 transition-transform duration-250 border-l-4 border-l-[#2ecc71]">
-                            <span className="text-[2rem]">✅</span>
+                        <div style={{ ...styles.statCard, borderLeft: '4px solid #2ecc71' }}>
+                            <span style={styles.statIcon}>✅</span>
                             <div>
-                                <div className="text-[1.65rem] font-bold text-[#2c3e50]">{stats.available}</div>
-                                <div className="text-[0.82rem] text-[#95a5a6] mt-0.5 uppercase tracking-[0.5px]">Available</div>
+                                <div style={styles.statValue}>{stats.available}</div>
+                                <div style={styles.statLabel}>Available</div>
                             </div>
                         </div>
-                        <div className="bg-white p-5 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center gap-4 transition-transform duration-250 border-l-4 border-l-[#e74c3c]">
-                            <span className="text-[2rem]">🚫</span>
+                        <div style={{ ...styles.statCard, borderLeft: '4px solid #e74c3c' }}>
+                            <span style={styles.statIcon}>🚫</span>
                             <div>
-                                <div className="text-[1.65rem] font-bold text-[#2c3e50]">{stats.outOfStock}</div>
-                                <div className="text-[0.82rem] text-[#95a5a6] mt-0.5 uppercase tracking-[0.5px]">Out of Stock</div>
+                                <div style={styles.statValue}>{stats.outOfStock}</div>
+                                <div style={styles.statLabel}>Out of Stock</div>
                             </div>
                         </div>
-                        <div className="bg-white p-5 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex items-center gap-4 transition-transform duration-250 border-l-4 border-l-[#9b59b6]">
-                            <span className="text-[2rem]">🏷️</span>
+                        <div style={{ ...styles.statCard, borderLeft: '4px solid #9b59b6' }}>
+                            <span style={styles.statIcon}>🏷️</span>
                             <div>
-                                <div className="text-[1.65rem] font-bold text-[#2c3e50]">{stats.categories}</div>
-                                <div className="text-[0.82rem] text-[#95a5a6] mt-0.5 uppercase tracking-[0.5px]">Categories</div>
+                                <div style={styles.statValue}>{stats.categories}</div>
+                                <div style={styles.statLabel}>Categories</div>
                             </div>
                         </div>
                     </div>
 
                     {/* ── Alerts ── */}
                     {error && (
-                        <div className="bg-gradient-to-br from-[#fff5f5] to-[#ffe0e0] text-[#c0392b] py-3.5 px-5 rounded-xl mb-4 flex justify-between items-center border border-[#f5c6cb] animate-[fadeSlideIn_0.3s_ease]">
+                        <div style={styles.alertError}>
                             <span>❌ {error}</span>
-                            <button onClick={() => setError(null)} className="bg-transparent border-none text-[1.4rem] cursor-pointer text-inherit px-1.5 leading-none">×</button>
+                            <button onClick={() => setError(null)} style={styles.alertClose}>×</button>
                         </div>
                     )}
                     {success && (
-                        <div className="bg-gradient-to-br from-[#f0fff4] to-[#d4edda] text-[#155724] py-3.5 px-5 rounded-xl mb-4 flex justify-between items-center border border-[#c3e6cb] animate-[fadeSlideIn_0.3s_ease]">
+                        <div style={styles.alertSuccess}>
                             <span>✅ {success}</span>
-                            <button onClick={() => setSuccess(null)} className="bg-transparent border-none text-[1.4rem] cursor-pointer text-inherit px-1.5 leading-none">×</button>
+                            <button onClick={() => setSuccess(null)} style={styles.alertClose}>×</button>
                         </div>
                     )}
 
                     {/* ── Add / Edit Form ── */}
                     {showForm && (
-                        <div className="bg-white p-8 rounded-[14px] mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-[rgba(52,152,219,0.12)] animate-[fadeSlideIn_0.35s_ease]">
-                            <h3 className="m-0 mb-5 text-[#2c3e50] text-[1.3rem] font-semibold">
+                        <div style={styles.formCard}>
+                            <h3 style={styles.formTitle}>
                                 {editingBook ? '✏️ Edit Book' : '📘 Add New Book'}
                             </h3>
-                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.85rem] font-semibold text-[#34495e]">Title <span className="text-[#e74c3c]">*</span></label>
+                            <form onSubmit={handleSubmit} style={styles.formGrid}>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>Title <span style={styles.required}>*</span></label>
                                     <input
                                         type="text"
                                         placeholder="Enter book title"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         required
-                                        className="py-[0.7rem] px-[0.9rem] border border-[#dfe6e9] rounded-lg text-[0.95rem] transition-all bg-[#fafbfc] focus:border-[#3498db] focus:shadow-[0_0_0_3px_rgba(52,152,219,0.15)] outline-none"
+                                        style={styles.input}
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.85rem] font-semibold text-[#34495e]">Author <span className="text-[#e74c3c]">*</span></label>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>Author <span style={styles.required}>*</span></label>
                                     <input
                                         type="text"
                                         placeholder="Enter author name"
                                         value={formData.author}
                                         onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                                         required
-                                        className="py-[0.7rem] px-[0.9rem] border border-[#dfe6e9] rounded-lg text-[0.95rem] transition-all bg-[#fafbfc] focus:border-[#3498db] focus:shadow-[0_0_0_3px_rgba(52,152,219,0.15)] outline-none"
+                                        style={styles.input}
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.85rem] font-semibold text-[#34495e]">Category</label>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>Category</label>
                                     <input
                                         type="text"
                                         placeholder="e.g. Fiction, Science"
                                         value={formData.category}
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="py-[0.7rem] px-[0.9rem] border border-[#dfe6e9] rounded-lg text-[0.95rem] transition-all bg-[#fafbfc] focus:border-[#3498db] focus:shadow-[0_0_0_3px_rgba(52,152,219,0.15)] outline-none"
+                                        style={styles.input}
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.85rem] font-semibold text-[#34495e]">ISBN <span className="text-[#e74c3c]">*</span></label>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>ISBN <span style={styles.required}>*</span></label>
                                     <input
                                         type="text"
                                         placeholder="e.g. 978-3-16-148410-0"
                                         value={formData.isbn}
                                         onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
                                         required
-                                        className="py-[0.7rem] px-[0.9rem] border border-[#dfe6e9] rounded-lg text-[0.95rem] transition-all bg-[#fafbfc] focus:border-[#3498db] focus:shadow-[0_0_0_3px_rgba(52,152,219,0.15)] outline-none"
+                                        style={styles.input}
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.85rem] font-semibold text-[#34495e]">Copies Available <span className="text-[#e74c3c]">*</span></label>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>Copies Available <span style={styles.required}>*</span></label>
                                     <input
                                         type="number"
                                         placeholder="0"
@@ -277,12 +274,12 @@ export default function BooksManagement() {
                                         onChange={(e) => setFormData({ ...formData, copiesAvailable: parseInt(e.target.value) || 0 })}
                                         required
                                         min="0"
-                                        className="py-[0.7rem] px-[0.9rem] border border-[#dfe6e9] rounded-lg text-[0.95rem] transition-all bg-[#fafbfc] focus:border-[#3498db] focus:shadow-[0_0_0_3px_rgba(52,152,219,0.15)] outline-none"
+                                        style={styles.input}
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.85rem] font-semibold text-[#34495e]">Total Copies <span className="text-[#e74c3c]">*</span></label>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>Total Copies <span style={styles.required}>*</span></label>
                                     <input
                                         type="number"
                                         placeholder="0"
@@ -290,15 +287,15 @@ export default function BooksManagement() {
                                         onChange={(e) => setFormData({ ...formData, totalCopies: parseInt(e.target.value) || 0 })}
                                         required
                                         min="0"
-                                        className="py-[0.7rem] px-[0.9rem] border border-[#dfe6e9] rounded-lg text-[0.95rem] transition-all bg-[#fafbfc] focus:border-[#3498db] focus:shadow-[0_0_0_3px_rgba(52,152,219,0.15)] outline-none"
+                                        style={styles.input}
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="col-span-1 md:col-span-2 flex gap-3 mt-2">
-                                    <button type="submit" className="flex-1 p-[0.8rem] bg-gradient-to-br from-[#3498db] to-[#2980b9] text-white border-none rounded-lg cursor-pointer text-[0.95rem] font-semibold transition-all shadow-[0_4px_14px_rgba(52,152,219,0.3)] hover:opacity-90" disabled={loading}>
+                                <div style={styles.formActions}>
+                                    <button type="submit" style={styles.btnSubmit} disabled={loading}>
                                         {loading ? '⏳ Saving...' : (editingBook ? '💾 Update Book' : '➕ Add Book')}
                                     </button>
-                                    <button type="button" onClick={resetForm} className="flex-1 p-[0.8rem] bg-[#ecf0f1] text-[#7f8c8d] border border-[#dfe6e9] rounded-lg cursor-pointer text-[0.95rem] font-semibold transition-all hover:bg-[#e2e6e7]" disabled={loading}>
+                                    <button type="button" onClick={resetForm} style={styles.btnFormCancel} disabled={loading}>
                                         Cancel
                                     </button>
                                 </div>
@@ -307,40 +304,40 @@ export default function BooksManagement() {
                     )}
 
                     {/* ── Toolbar: Search, Filter, View Toggle ── */}
-                    <div className="flex items-center gap-4 mb-5 flex-wrap flex-col md:flex-row">
-                        <div className="flex items-center bg-white rounded-lg px-4 flex-1 w-full md:min-w-[260px] border border-[#dfe6e9] transition-all focus-within:border-[#3498db] focus-within:shadow-[0_0_0_3px_rgba(52,152,219,0.15)] py-1.5">
-                            <span className="text-[1.1rem] mr-2">🔍</span>
+                    <div className="books-toolbar" style={styles.toolbar}>
+                        <div className="books-search-wrap" style={styles.searchWrap}>
+                            <span style={styles.searchIcon}>🔍</span>
                             <input
                                 type="text"
                                 placeholder="Search by title, author or ISBN…"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="flex-1 py-[0.7rem] bg-transparent border-none outline-none text-[0.95rem]"
+                                style={styles.searchInput}
                             />
                             {searchQuery && (
-                                <button onClick={() => setSearchQuery('')} className="bg-transparent border-none cursor-pointer text-[0.9rem] text-[#95a5a6] px-1">✕</button>
+                                <button onClick={() => setSearchQuery('')} style={styles.clearSearch}>✕</button>
                             )}
                         </div>
-                        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                        <div className="books-toolbar-right" style={styles.toolbarRight}>
                             <select
                                 value={categoryFilter}
                                 onChange={(e) => setCategoryFilter(e.target.value)}
-                                className="py-[0.65rem] px-4 rounded-lg border border-[#dfe6e9] text-[0.9rem] bg-white text-[#2c3e50] cursor-pointer min-w-[160px] outline-none focus:border-[#3498db] focus:shadow-[0_0_0_3px_rgba(52,152,219,0.15)]"
+                                style={styles.filterSelect}
                             >
                                 <option value="">All Categories</option>
                                 {categories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
                             </select>
-                            <div className="flex bg-white rounded-lg overflow-hidden border border-[#dfe6e9]">
+                            <div style={styles.viewToggle}>
                                 <button
                                     onClick={() => setViewMode('grid')}
-                                    className={`px-[0.85rem] py-[0.55rem] border-none text-[1.15rem] cursor-pointer transition-all ${viewMode === 'grid' ? 'bg-gradient-to-br from-[#3498db] to-[#2980b9] text-white' : 'bg-transparent text-[#95a5a6]'}`}
+                                    style={viewMode === 'grid' ? styles.viewBtnActive : styles.viewBtn}
                                     title="Grid view"
                                 >▦</button>
                                 <button
                                     onClick={() => setViewMode('table')}
-                                    className={`px-[0.85rem] py-[0.55rem] border-none text-[1.15rem] cursor-pointer transition-all ${viewMode === 'table' ? 'bg-gradient-to-br from-[#3498db] to-[#2980b9] text-white' : 'bg-transparent text-[#95a5a6]'}`}
+                                    style={viewMode === 'table' ? styles.viewBtnActive : styles.viewBtn}
                                     title="Table view"
                                 >☰</button>
                             </div>
@@ -349,29 +346,29 @@ export default function BooksManagement() {
 
                     {/* ── Loading ── */}
                     {loading && !showForm && (
-                        <div className="text-center p-12">
-                            <div className="w-10 h-10 border-4 border-[#dfe6e9] border-t-[#3498db] rounded-full animate-spin mx-auto mb-4"></div>
-                            <p className="text-[#7f8c8d] text-[1rem] m-0">Loading books…</p>
+                        <div style={styles.loadingWrap}>
+                            <div style={styles.spinner}></div>
+                            <p style={styles.loadingText}>Loading books…</p>
                         </div>
                     )}
 
                     {/* ── Results info ── */}
                     {!loading && books.length > 0 && (
-                        <p className="text-[0.88rem] text-[#7f8c8d] mb-4">
-                            Showing <strong className="font-semibold text-[#2c3e50]">{filteredBooks.length}</strong> of <strong className="font-semibold text-[#2c3e50]">{books.length}</strong> books
-                            {searchQuery && <> matching &quot;<em className="not-italic font-medium text-[#3498db]">{searchQuery}</em>&quot;</>}
-                            {categoryFilter && <> in <strong className="font-semibold text-[#2c3e50]">{categoryFilter}</strong></>}
+                        <p style={styles.resultsInfo}>
+                            Showing <strong>{filteredBooks.length}</strong> of <strong>{books.length}</strong> books
+                            {searchQuery && <> matching &quot;<em>{searchQuery}</em>&quot;</>}
+                            {categoryFilter && <> in <strong>{categoryFilter}</strong></>}
                         </p>
                     )}
 
                     {/* ── Empty State ── */}
                     {filteredBooks.length === 0 && !loading && (
-                        <div className="text-center py-16 px-8 bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] mt-4">
-                            <div className="text-[3.5rem] mb-4 opacity-80">{books.length === 0 ? '📚' : '🔍'}</div>
-                            <h3 className="text-[#2c3e50] mb-2 text-[1.25rem] font-bold">
+                        <div style={styles.emptyState}>
+                            <div style={styles.emptyIcon}>{books.length === 0 ? '📚' : '🔍'}</div>
+                            <h3 style={styles.emptyTitle}>
                                 {books.length === 0 ? 'No Books Yet' : 'No Results Found'}
                             </h3>
-                            <p className="text-[#95a5a6] text-[0.95rem] max-w-[380px] mx-auto m-0 leading-relaxed">
+                            <p style={styles.emptyText}>
                                 {books.length === 0
                                     ? 'Click "Add New Book" to add your first book to the catalogue.'
                                     : 'Try adjusting your search or filter criteria.'}
@@ -381,7 +378,7 @@ export default function BooksManagement() {
 
                     {/* ── Grid View ── */}
                     {viewMode === 'grid' && filteredBooks.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div className="books-grid" style={styles.booksGrid}>
                             {filteredBooks.map((book) => (
                                 <BookCard
                                     key={book.id}
@@ -395,41 +392,40 @@ export default function BooksManagement() {
 
                     {/* ── Table View ── */}
                     {viewMode === 'table' && filteredBooks.length > 0 && (
-                        <div className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-x-auto border border-[#f1f3f5]">
-                            <table className="w-full border-collapse min-w-[700px] text-left">
+                        <div style={styles.tableWrap}>
+                            <table style={styles.table}>
                                 <thead>
                                     <tr>
-                                        <th className="px-4 py-3.5 bg-[#f8f9fb] text-[#7f8c8d] text-[0.8rem] uppercase tracking-[0.5px] font-bold border-b-2 border-[#ecf0f1]">Title</th>
-                                        <th className="px-4 py-3.5 bg-[#f8f9fb] text-[#7f8c8d] text-[0.8rem] uppercase tracking-[0.5px] font-bold border-b-2 border-[#ecf0f1]">Author</th>
-                                        <th className="px-4 py-3.5 bg-[#f8f9fb] text-[#7f8c8d] text-[0.8rem] uppercase tracking-[0.5px] font-bold border-b-2 border-[#ecf0f1]">Category</th>
-                                        <th className="px-4 py-3.5 bg-[#f8f9fb] text-[#7f8c8d] text-[0.8rem] uppercase tracking-[0.5px] font-bold border-b-2 border-[#ecf0f1]">ISBN</th>
-                                        <th className="px-4 py-3.5 bg-[#f8f9fb] text-[#7f8c8d] text-[0.8rem] uppercase tracking-[0.5px] font-bold border-b-2 border-[#ecf0f1] text-center">Availability</th>
-                                        <th className="px-4 py-3.5 bg-[#f8f9fb] text-[#7f8c8d] text-[0.8rem] uppercase tracking-[0.5px] font-bold border-b-2 border-[#ecf0f1] text-center">Actions</th>
+                                        <th style={styles.th}>Title</th>
+                                        <th style={styles.th}>Author</th>
+                                        <th style={styles.th}>Category</th>
+                                        <th style={styles.th}>ISBN</th>
+                                        <th style={{ ...styles.th, textAlign: 'center' }}>Availability</th>
+                                        <th style={{ ...styles.th, textAlign: 'center' }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredBooks.map((book) => (
-                                        <tr key={book.id} className="border-b border-[#f1f3f5] transition-colors duration-200 hover:bg-[#f0f7ff]">
-                                            <td className="px-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle">
-                                                <strong className="font-semibold">{book.title}</strong>
+                                        <tr key={book.id} className="books-table-row" style={styles.tr}>
+                                            <td style={styles.td}>
+                                                <strong>{book.title}</strong>
                                             </td>
-                                            <td className="px-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle">{book.author}</td>
-                                            <td className="px-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle">
-                                                <span className="inline-block px-3 py-1 bg-[#eef2ff] text-[#5b6abf] rounded-full text-[0.82rem] font-medium">{book.category || '—'}</span>
+                                            <td style={styles.td}>{book.author}</td>
+                                            <td style={styles.td}>
+                                                <span style={styles.categoryBadge}>{book.category || '—'}</span>
                                             </td>
-                                            <td className="px-4 py-3.5 text-[#2c3e50] align-middle font-mono text-[0.85rem]">{book.isbn}</td>
-                                            <td className="px-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle text-center">
-                                                <span className={`inline-block px-3 py-1 rounded-full text-[0.82rem] font-semibold ${book.copiesAvailable > 0 ? 'bg-[#e8f8f0] text-[#27ae60]' : 'bg-[#fdecea] text-[#e74c3c]'
-                                                    }`}>
+                                            <td style={{ ...styles.td, fontFamily: 'monospace', fontSize: '0.85rem' }}>{book.isbn}</td>
+                                            <td style={{ ...styles.td, textAlign: 'center' }}>
+                                                <span style={book.copiesAvailable > 0 ? styles.badgeAvailable : styles.badgeOut}>
                                                     {book.copiesAvailable} / {book.totalCopies}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3.5 text-[0.92rem] text-[#2c3e50] align-middle text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <button onClick={() => handleEdit(book)} className="p-1.5 border-[1.5px] border-[#3498db] rounded-lg bg-white text-[#3498db] cursor-pointer text-[0.95rem] transition-all hover:bg-[#3498db] hover:text-white" title="Edit">
+                                            <td style={{ ...styles.td, textAlign: 'center' }}>
+                                                <div style={styles.actionBtns}>
+                                                    <button onClick={() => handleEdit(book)} style={styles.btnEdit} title="Edit">
                                                         ✏️
                                                     </button>
-                                                    <button onClick={() => handleDelete(book.id)} className="p-1.5 border-[1.5px] border-[#e74c3c] rounded-lg bg-white text-[#e74c3c] cursor-pointer text-[0.95rem] transition-all hover:bg-[#e74c3c] hover:text-white" title="Delete">
+                                                    <button onClick={() => handleDelete(book.id)} style={styles.btnDelete} title="Delete">
                                                         🗑️
                                                     </button>
                                                 </div>
