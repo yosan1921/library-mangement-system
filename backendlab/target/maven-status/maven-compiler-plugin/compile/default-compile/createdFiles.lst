@@ -8,7 +8,6 @@ com\example\lms\repository\BorrowRecordRepository.class
 com\example\lms\model\Payment.class
 com\example\lms\service\AuthService.class
 com\example\lms\controller\HomeController.class
-com\example\lms\controller\TestController.class
 com\example\lms\service\BackupService.class
 com\example\lms\controller\AdminController.class
 com\example\lms\LmsApplication.class
