@@ -26,7 +26,7 @@ export default function MemberPage() {
                             Discover books, track your loans, manage reservations, and stay on top of
                             due dates — all from your member portal.
                         </p>
-                        <Link href="/login" className="mp-cta-btn">Access Member Portal →</Link>
+                        <Link href="/member-login" className="mp-cta-btn">Access Member Portal →</Link>
                     </div>
                 </header>
 
@@ -47,7 +47,7 @@ export default function MemberPage() {
                     <div className="mp-cta-box">
                         <h2 className="mp-cta-title">Ready to explore the library?</h2>
                         <p className="mp-cta-sub">Log in with your member credentials to start borrowing books today.</p>
-                        <Link href="/login" className="mp-cta-btn mp-cta-btn--dark">Login Now →</Link>
+                        <Link href="/member-login" className="mp-cta-btn mp-cta-btn--dark">Login Now →</Link>
                     </div>
                 </main>
             </div>

@@ -1,8 +1,10 @@
 package com.example.lms.controller;
 
 import com.example.lms.model.Admin;
+import com.example.lms.model.Librarian;
 import com.example.lms.model.Member;
 import com.example.lms.repository.AdminRepository;
+import com.example.lms.repository.LibrarianRepository;
 import com.example.lms.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,9 @@ public class InitDataController {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private LibrarianRepository librarianRepository;
 
     @GetMapping("/test-data")
     public ResponseEntity<?> initializeTestDataGet() {
@@ -76,19 +81,18 @@ public class InitDataController {
             result.put("admin", "Admin already exists");
         }
 
-        // Create test librarian if not exists
-        if (!adminRepository.findByUsername("librarian").isPresent()) {
-            Admin librarian = new Admin();
+        // Create test librarian in librarians collection if not exists
+        if (!librarianRepository.findByUsername("librarian").isPresent()) {
+            Librarian librarian = new Librarian();
             librarian.setUsername("librarian");
             librarian.setPassword("lib123");
             librarian.setEmail("librarian@library.com");
-            librarian.setFullName("Library Staff");
+            librarian.setName("Library Staff");
             librarian.setPhone("0987654321");
-            librarian.setRole("LIBRARIAN");
-            librarian.setPermissions(Arrays.asList("MANAGE_BOOKS", "MANAGE_BORROWS"));
             librarian.setActive(true);
-            librarian.setCreatedDate(LocalDateTime.now());
-            adminRepository.save(librarian);
+            librarian.setCreatedAt(new java.util.Date());
+            librarian.setUpdatedAt(new java.util.Date());
+            librarianRepository.save(librarian);
             result.put("librarian", "Created test librarian: username=librarian, password=lib123");
         } else {
             result.put("librarian", "Librarian already exists");

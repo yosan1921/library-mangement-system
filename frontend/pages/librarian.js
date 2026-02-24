@@ -26,7 +26,7 @@ export default function LibrarianPage() {
                             Everything a librarian needs — book management, member services, reports, and
                             more — all in one modern dashboard.
                         </p>
-                        <Link href="/login" className="lp-cta-btn">Access Librarian Portal →</Link>
+                        <Link href="/librarian-login" className="lp-cta-btn">Access Librarian Portal →</Link>
                     </div>
                 </header>
 
@@ -48,7 +48,7 @@ export default function LibrarianPage() {
                         <div className="lp-cta-inner">
                             <h2 className="lp-cta-title">Ready to manage the library?</h2>
                             <p className="lp-cta-sub">Log in with your librarian credentials to access your dashboard.</p>
-                            <Link href="/login" className="lp-cta-btn lp-cta-btn--dark">Login Now →</Link>
+                            <Link href="/librarian-login" className="lp-cta-btn lp-cta-btn--dark">Login Now →</Link>
                         </div>
                     </div>
                 </main>

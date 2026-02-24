@@ -1,8 +1,10 @@
 package com.example.lms.service;
 
 import com.example.lms.model.Admin;
+import com.example.lms.model.Librarian;
 import com.example.lms.model.Member;
 import com.example.lms.repository.AdminRepository;
+import com.example.lms.repository.LibrarianRepository;
 import com.example.lms.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,9 @@ public class AuthService {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private LibrarianRepository librarianRepository;
 
     public Map<String, Object> authenticate(String username, String password) {
         System.out.println("=== Authentication Attempt ===");
@@ -51,7 +56,29 @@ public class AuthService {
             return response;
         }
 
-        // If not admin, try to authenticate as Member
+        // Second, try to authenticate as Librarian
+        Librarian librarian = librarianRepository.findByUsername(username).orElse(null);
+        System.out.println("Librarian found: " + (librarian != null));
+        
+        if (librarian != null) {
+            System.out.println("Librarian password in DB: " + librarian.getPassword());
+            System.out.println("Password matches: " + librarian.getPassword().equals(password));
+            System.out.println("Librarian active: " + librarian.isActive());
+        }
+        
+        if (librarian != null && librarian.getPassword().equals(password) && librarian.isActive()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", librarian.getId());
+            response.put("username", librarian.getUsername());
+            response.put("fullName", librarian.getName());
+            response.put("email", librarian.getEmail());
+            response.put("role", "librarian");
+            response.put("permissions", java.util.Arrays.asList("MANAGE_BOOKS", "MANAGE_BORROWS"));
+            System.out.println("Librarian authentication successful!");
+            return response;
+        }
+
+        // If not admin or librarian, try to authenticate as Member
         Member member = memberRepository.findByMembershipID(username).orElse(null);
         if (member != null && member.getActive()) {
             // For members, we'll use membershipID as username
