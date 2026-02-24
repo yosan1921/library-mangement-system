@@ -26,16 +26,19 @@ export default function AdminLogin() {
         setError('');
 
         try {
+            console.log('Attempting login with:', formData.username);
             const data = await authService.login(formData.username, formData.password);
+            console.log('Login response:', data);
 
             // Only allow admin role
             if (data.role === 'admin' || data.role === 'ADMIN') {
                 localStorage.setItem('user', JSON.stringify(data));
                 router.push('/admin/dashboard');
             } else {
-                setError('Access denied. This login is for administrators only.');
+                setError(`Access denied. This login is for administrators only. Your role: ${data.role}`);
             }
         } catch (err) {
+            console.error('Login error:', err);
             setError(err.message || 'Invalid username or password');
         } finally {
             setLoading(false);

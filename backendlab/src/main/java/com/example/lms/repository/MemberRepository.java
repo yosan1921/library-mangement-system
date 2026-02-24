@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface MemberRepository extends MongoRepository<Member, String> {
     Optional<Member> findByMembershipID(String membershipID);
+    Optional<Member> findByUsername(String username);
     Optional<Member> findByEmail(String email);
     List<Member> findByActive(Boolean active);
     List<Member> findByRole(String role);

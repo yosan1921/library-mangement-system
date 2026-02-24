@@ -99,15 +99,18 @@ public class InitDataController {
         }
 
         // Create test member if not exists
-        if (!memberRepository.findByMembershipID("M001").isPresent()) {
+        if (!memberRepository.findByUsername("member").isPresent()) {
             Member member = new Member();
+            member.setUsername("member");
+            member.setPassword("mem123");
             member.setMembershipID("M001");
             member.setName("John Doe");
+            member.setEmail("member@library.com");
             member.setContact("john@example.com");
             member.setActive(true);
             member.setRole("MEMBER");
             memberRepository.save(member);
-            result.put("member", "Created test member: membershipID=M001");
+            result.put("member", "Created test member: username=member, password=mem123");
         } else {
             result.put("member", "Member already exists");
         }

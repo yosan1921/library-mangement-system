@@ -1,115 +1,44 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { authService } from '../services/authService';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 
-export default function Login() {
+export default function LoginSelection() {
     const router = useRouter();
-    const [formData, setFormData] = useState({
-        username: '',
-        password: ''
-    });
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-        setError('');
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-
-        try {
-            const data = await authService.login(formData.username, formData.password);
-
-            // Store user info in localStorage
-            localStorage.setItem('user', JSON.stringify(data));
-
-            // Redirect based on role from backend response
-            switch (data.role) {
-                case 'ADMIN':
-                case 'admin':
-                    router.push('/admin/dashboard');
-                    break;
-                case 'LIBRARIAN':
-                case 'librarian':
-                    router.push('/librarian/dashboard');
-                    break;
-                case 'MEMBER':
-                case 'member':
-                    router.push('/member/dashboard');
-                    break;
-                default:
-                    router.push('/');
-            }
-        } catch (err) {
-            setError(err.message || 'Login failed. Please check your credentials.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // If someone lands on /login, redirect to admin login by default
+    useEffect(() => {
+        router.push('/admin-login');
+    }, [router]);
 
     return (
         <div style={styles.container}>
-            <div style={styles.loginBox}>
-                <h1 style={styles.title}>Login</h1>
-                <p style={styles.subtitle}>Library Management System</p>
+            <div style={styles.box}>
+                <h1 style={styles.title}>Select Login Type</h1>
+                <p style={styles.subtitle}>Choose your role to continue</p>
 
-                {error && <div style={styles.error}>{error}</div>}
+                <div style={styles.grid}>
+                    <Link href="/admin-login" style={styles.card}>
+                        <div style={styles.icon}>👨‍💼</div>
+                        <h2 style={styles.cardTitle}>Admin</h2>
+                        <p style={styles.cardText}>System administrators</p>
+                    </Link>
 
-                <form onSubmit={handleSubmit} style={styles.form}>
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Username</label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            style={styles.input}
-                            placeholder="Enter your username"
-                            required
-                        />
-                    </div>
+                    <Link href="/librarian-login" style={styles.card}>
+                        <div style={styles.icon}>📚</div>
+                        <h2 style={styles.cardTitle}>Librarian</h2>
+                        <p style={styles.cardText}>Library staff</p>
+                    </Link>
 
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            style={styles.input}
-                            placeholder="Enter your password"
-                            required
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        style={styles.button}
-                        disabled={loading}
-                    >
-                        {loading ? 'Logging in...' : 'Login'}
-                    </button>
-                </form>
-
-                <div style={styles.footer}>
-                    <div style={styles.testCredentials}>
-                        <p style={styles.credentialsTitle}>Test Credentials:</p>
-                        <p style={styles.hint}>Admin: admin / admin123</p>
-                        <p style={styles.hint}>Librarian: librarian / lib123</p>
-                        <p style={styles.hint}>Member: member / mem123</p>
-                    </div>
-                    <Link href="/" style={styles.link}>
-                        Back to Home
+                    <Link href="/member-login" style={styles.card}>
+                        <div style={styles.icon}>👤</div>
+                        <h2 style={styles.cardTitle}>Member</h2>
+                        <p style={styles.cardText}>Library members</p>
                     </Link>
                 </div>
+
+                <Link href="/" style={styles.backLink}>
+                    ← Back to Home
+                </Link>
             </div>
         </div>
     );
@@ -121,97 +50,62 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         padding: '1rem',
     },
-    loginBox: {
+    box: {
         backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        padding: '3rem',
+        borderRadius: '16px',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         width: '100%',
-        maxWidth: '400px',
+        maxWidth: '800px',
+        textAlign: 'center',
     },
     title: {
-        fontSize: 'clamp(1.5rem, 5vw, 2rem)',
+        fontSize: '2rem',
         fontWeight: 'bold',
         color: '#2c3e50',
         marginBottom: '0.5rem',
-        textAlign: 'center',
     },
     subtitle: {
         color: '#7f8c8d',
-        textAlign: 'center',
+        fontSize: '1rem',
+        marginBottom: '2.5rem',
+    },
+    grid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '1.5rem',
         marginBottom: '2rem',
-        fontSize: 'clamp(0.875rem, 3vw, 1rem)',
     },
-    error: {
-        backgroundColor: '#fee',
-        color: '#c33',
-        padding: '0.75rem',
-        borderRadius: '4px',
-        marginBottom: '1rem',
-        fontSize: '0.9rem',
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.25rem',
-    },
-    formGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-    },
-    label: {
-        fontSize: '0.9rem',
-        fontWeight: '500',
-        color: '#2c3e50',
-    },
-    input: {
-        padding: '0.75rem',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        fontSize: '1rem',
-        outline: 'none',
-        transition: 'border-color 0.3s',
-    },
-    button: {
-        padding: '0.875rem',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        fontSize: '1rem',
-        fontWeight: '500',
-        cursor: 'pointer',
-        transition: 'background-color 0.3s',
-        marginTop: '0.5rem',
-    },
-    footer: {
-        marginTop: '1.5rem',
-        textAlign: 'center',
-    },
-    testCredentials: {
+    card: {
         backgroundColor: '#f8f9fa',
-        padding: '1rem',
-        borderRadius: '4px',
-        marginBottom: '1rem'
+        padding: '2rem 1.5rem',
+        borderRadius: '12px',
+        textDecoration: 'none',
+        transition: 'all 0.3s',
+        border: '2px solid transparent',
+        cursor: 'pointer',
     },
-    credentialsTitle: {
-        fontSize: '0.9rem',
+    icon: {
+        fontSize: '3rem',
+        marginBottom: '1rem',
+    },
+    cardTitle: {
+        fontSize: '1.25rem',
         fontWeight: 'bold',
         color: '#2c3e50',
-        marginBottom: '0.5rem'
+        marginBottom: '0.5rem',
     },
-    hint: {
-        fontSize: '0.85rem',
-        color: '#7f8c8d',
-        margin: '0.25rem 0',
-    },
-    link: {
-        color: '#3498db',
-        textDecoration: 'none',
+    cardText: {
         fontSize: '0.9rem',
+        color: '#7f8c8d',
+    },
+    backLink: {
+        color: '#667eea',
+        textDecoration: 'none',
+        fontSize: '0.95rem',
+        fontWeight: '500',
     },
 };
