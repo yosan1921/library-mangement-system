@@ -90,6 +90,11 @@ export default function MemberLogin() {
                 </form>
 
                 <div style={styles.footer}>
+                    <div style={styles.testCredentials}>
+                        <p style={styles.credentialsTitle}>Test Credentials:</p>
+                        <p style={styles.hint}>Username: member</p>
+                        <p style={styles.hint}>Password: mem123</p>
+                    </div>
                     <Link href="/member" style={styles.link}>
                         ← Back to Member Page
                     </Link>
@@ -188,6 +193,23 @@ const styles = {
     footer: {
         marginTop: '1.5rem',
         textAlign: 'center',
+    },
+    testCredentials: {
+        backgroundColor: '#f8f9fa',
+        padding: '1rem',
+        borderRadius: '8px',
+        marginBottom: '1rem'
+    },
+    credentialsTitle: {
+        fontSize: '0.9rem',
+        fontWeight: 'bold',
+        color: '#2c3e50',
+        marginBottom: '0.5rem'
+    },
+    hint: {
+        fontSize: '0.85rem',
+        color: '#7f8c8d',
+        margin: '0.25rem 0',
     },
     link: {
         color: '#10b981',
