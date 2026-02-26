@@ -2,9 +2,11 @@ package com.example.lms.service;
 
 import com.example.lms.model.BorrowRecord;
 import com.example.lms.model.Fine;
+import com.example.lms.model.Member;
 import com.example.lms.model.Payment;
 import com.example.lms.repository.BorrowRecordRepository;
 import com.example.lms.repository.FineRepository;
+import com.example.lms.repository.MemberRepository;
 import com.example.lms.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Service
 public class FineService {
@@ -25,6 +28,12 @@ public class FineService {
     
     @Autowired
     private BorrowRecordRepository borrowRecordRepository;
+    
+    @Autowired
+    private MemberRepository memberRepository;
+    
+    @Autowired(required = false)
+    private NotificationService notificationService;
     
     private static final Double FINE_PER_DAY = 1.0; // $1 per day overdue
     
@@ -69,7 +78,22 @@ public class FineService {
         fine.setIssueDate(LocalDate.now());
         fine.setStatus("UNPAID");
         
-        return fineRepository.save(fine);
+        Fine savedFine = fineRepository.save(fine);
+        
+        // Send notification if service is available
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(memberID);
+                if (optMember.isPresent()) {
+                    notificationService.createFineNotification(savedFine, optMember.get());
+                }
+            } catch (Exception e) {
+                // Log error but don't fail the fine creation
+                System.err.println("Failed to create fine notification: " + e.getMessage());
+            }
+        }
+        
+        return savedFine;
     }
     
     public Payment recordPayment(String fineID, Double amount, String paymentMethod, String notes) {

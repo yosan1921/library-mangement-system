@@ -34,6 +34,9 @@ public class NotificationService {
     @Autowired
     private ReservationRepository reservationRepository;
     
+    @Autowired
+    private BookRepository bookRepository;
+    
     // Create a notification
     public Notification createNotification(Notification notification) {
         return notificationRepository.save(notification);
@@ -200,11 +203,22 @@ public class NotificationService {
             notification.setType("EMAIL");
         }
         
+        // Get book title from Book repository
+        String bookTitle = "Unknown Book";
+        try {
+            Optional<Book> optBook = bookRepository.findById(borrow.getBookID());
+            if (optBook.isPresent()) {
+                bookTitle = optBook.get().getTitle();
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch book title: " + e.getMessage());
+        }
+        
         notification.setSubject("Book Due Date Reminder");
         notification.setMessage(String.format(
             "Dear %s,\n\nThis is a reminder that your borrowed book '%s' is due on %s.\n\nPlease return it on time to avoid fines.\n\nThank you,\n%s",
             member.getName(),
-            borrow.getBookTitle(),
+            bookTitle,
             borrow.getDueDate(),
             settings.getLibraryName()
         ));
@@ -233,11 +247,22 @@ public class NotificationService {
             notification.setType("EMAIL");
         }
         
+        // Get book title from Book repository
+        String bookTitle = "Unknown Book";
+        try {
+            Optional<Book> optBook = bookRepository.findById(borrow.getBookID());
+            if (optBook.isPresent()) {
+                bookTitle = optBook.get().getTitle();
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch book title: " + e.getMessage());
+        }
+        
         notification.setSubject("Overdue Book Notice");
         notification.setMessage(String.format(
             "Dear %s,\n\nYour borrowed book '%s' is now overdue. It was due on %s.\n\nPlease return it immediately. Late fees may apply.\n\nThank you,\n%s",
             member.getName(),
-            borrow.getBookTitle(),
+            bookTitle,
             borrow.getDueDate(),
             settings.getLibraryName()
         ));
@@ -266,11 +291,22 @@ public class NotificationService {
             notification.setType("EMAIL");
         }
         
+        // Get book title from Book repository
+        String bookTitle = "Unknown Book";
+        try {
+            Optional<Book> optBook = bookRepository.findById(reservation.getBookID());
+            if (optBook.isPresent()) {
+                bookTitle = optBook.get().getTitle();
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch book title: " + e.getMessage());
+        }
+        
         notification.setSubject("Reserved Book Available");
         notification.setMessage(String.format(
             "Dear %s,\n\nYour reserved book '%s' is now available for pickup.\n\nPlease collect it within %d days.\n\nThank you,\n%s",
             member.getName(),
-            reservation.getBookTitle(),
+            bookTitle,
             settings.getReservationExpiryDays(),
             settings.getLibraryName()
         ));
@@ -299,12 +335,30 @@ public class NotificationService {
             notification.setType("EMAIL");
         }
         
+        // Get book title from BorrowRecord if available
+        String bookTitle = "a book";
+        if (fine.getBorrowRecordID() != null) {
+            try {
+                Optional<BorrowRecord> optBorrow = borrowRecordRepository.findById(fine.getBorrowRecordID());
+                if (optBorrow.isPresent()) {
+                    BorrowRecord borrow = optBorrow.get();
+                    Optional<Book> optBook = bookRepository.findById(borrow.getBookID());
+                    if (optBook.isPresent()) {
+                        bookTitle = optBook.get().getTitle();
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to fetch book title for fine: " + e.getMessage());
+            }
+        }
+        
         notification.setSubject("Fine Notice");
         notification.setMessage(String.format(
-            "Dear %s,\n\nYou have an outstanding fine of $%.2f for the book '%s'.\n\nPlease pay at your earliest convenience.\n\nThank you,\n%s",
+            "Dear %s,\n\nYou have an outstanding fine of $%.2f for %s.\n\nReason: %s\n\nPlease pay at your earliest convenience.\n\nThank you,\n%s",
             member.getName(),
             fine.getAmount(),
-            fine.getBookTitle(),
+            bookTitle,
+            fine.getReason() != null ? fine.getReason() : "Library fine",
             settings.getLibraryName()
         ));
         
@@ -364,16 +418,11 @@ public class NotificationService {
         LocalDate reminderDate = LocalDate.now().plusDays(settings.getDueDateReminderDays());
         
         List<BorrowRecord> upcomingDueBorrows = borrowRecordRepository.findAll().stream()
-            .filter(b -> "BORROWED".equals(b.getStatus()))
-            .filter(b -> {
-                LocalDate dueDate = b.getDueDate().toInstant()
-                    .atZone(ZoneId.systemDefault()).toLocalDate();
-                return dueDate.equals(reminderDate);
-            })
-            .collect(Collectors.toList());
+            .filter(b -> "BORROWED".equals(b.getStatus()) && b.getDueDate() != null && b.getDueDate().equals(reminderDate))
+            .toList();
         
         for (BorrowRecord borrow : upcomingDueBorrows) {
-            Optional<Member> optMember = memberRepository.findById(borrow.getMemberId());
+            Optional<Member> optMember = memberRepository.findById(borrow.getMemberID());
             if (optMember.isPresent()) {
                 Notification notification = createDueDateReminder(borrow, optMember.get());
                 try {
@@ -387,19 +436,13 @@ public class NotificationService {
     
     // Send overdue reminders
     private void sendOverdueReminders(SystemSettings settings) {
-        LocalDate overdueDate = LocalDate.now().minusDays(settings.getOverdueReminderDays());
-        
         List<BorrowRecord> overdueBorrows = borrowRecordRepository.findAll().stream()
             .filter(b -> "BORROWED".equals(b.getStatus()))
-            .filter(b -> {
-                LocalDate dueDate = b.getDueDate().toInstant()
-                    .atZone(ZoneId.systemDefault()).toLocalDate();
-                return dueDate.isBefore(LocalDate.now());
-            })
-            .collect(Collectors.toList());
+            .filter(b -> b.getDueDate() != null && b.getDueDate().isBefore(LocalDate.now()))
+            .toList();
         
         for (BorrowRecord borrow : overdueBorrows) {
-            Optional<Member> optMember = memberRepository.findById(borrow.getMemberId());
+            Optional<Member> optMember = memberRepository.findById(borrow.getMemberID());
             if (optMember.isPresent()) {
                 Notification notification = createOverdueReminder(borrow, optMember.get());
                 try {

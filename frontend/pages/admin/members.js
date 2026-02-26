@@ -16,6 +16,7 @@ export default function MembersManagement() {
     const [viewMode, setViewMode] = useState('grid');
     const [formData, setFormData] = useState({
         name: '',
+        email: '',
         contact: '',
         membershipID: '',
         active: true,
@@ -66,8 +67,22 @@ export default function MembersManagement() {
         setError(null);
         setSuccess(null);
 
-        if (!formData.name || !formData.contact || !formData.membershipID) {
-            setError('Please fill in all required fields');
+        // Validate required fields
+        if (!formData.name || !formData.email || !formData.contact || !formData.membershipID) {
+            setError('Please fill in all required fields (Name, Email, Phone, Membership ID)');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+
+        // Validate phone format (basic validation)
+        if (formData.contact.length < 10) {
+            setError('Please enter a valid phone number (at least 10 digits)');
             return;
         }
 
@@ -217,16 +232,30 @@ export default function MembersManagement() {
                                     />
                                 </div>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>Contact <span style={styles.required}>*</span></label>
+                                    <label style={styles.label}>Email Address <span style={styles.required}>*</span></label>
                                     <input
-                                        type="text"
-                                        placeholder="Email or phone number"
+                                        type="email"
+                                        placeholder="example@gmail.com"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        required
+                                        style={styles.input}
+                                        disabled={loading}
+                                    />
+                                    <small style={styles.helpText}>Required for email notifications</small>
+                                </div>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>Phone Number <span style={styles.required}>*</span></label>
+                                    <input
+                                        type="tel"
+                                        placeholder="+251912345678"
                                         value={formData.contact}
                                         onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                                         required
                                         style={styles.input}
                                         disabled={loading}
                                     />
+                                    <small style={styles.helpText}>Required for SMS notifications</small>
                                 </div>
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Membership ID <span style={styles.required}>*</span></label>
@@ -629,6 +658,12 @@ const styles = {
         color: '#34495e',
     },
     required: { color: '#e74c3c' },
+    helpText: {
+        fontSize: '0.75rem',
+        color: '#7f8c8d',
+        marginTop: '0.25rem',
+        fontStyle: 'italic',
+    },
     input: {
         padding: '0.7rem 0.9rem',
         border: '1.5px solid #dfe6e9',

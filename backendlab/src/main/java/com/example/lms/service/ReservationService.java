@@ -1,13 +1,16 @@
 package com.example.lms.service;
 
 import com.example.lms.model.Book;
+import com.example.lms.model.Member;
 import com.example.lms.model.Reservation;
 import com.example.lms.repository.BookRepository;
+import com.example.lms.repository.MemberRepository;
 import com.example.lms.repository.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ReservationService {
@@ -17,6 +20,12 @@ public class ReservationService {
     
     @Autowired
     private BookRepository bookRepository;
+    
+    @Autowired
+    private MemberRepository memberRepository;
+    
+    @Autowired(required = false)
+    private NotificationService notificationService;
     
     public Reservation createReservation(String memberID, String bookID) {
         Reservation reservation = new Reservation();
@@ -72,7 +81,22 @@ public class ReservationService {
         
         reservation.setNotifiedDate(LocalDate.now());
         reservation.setExpiryDate(LocalDate.now().plusDays(3)); // 3 days to pick up
-        return reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        
+        // Send notification if service is available
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(reservation.getMemberID());
+                if (optMember.isPresent()) {
+                    notificationService.createReservationReadyNotification(savedReservation, optMember.get());
+                }
+            } catch (Exception e) {
+                // Log error but don't fail the reservation
+                System.err.println("Failed to create reservation notification: " + e.getMessage());
+            }
+        }
+        
+        return savedReservation;
     }
     
     public Reservation fulfillReservation(String id) {

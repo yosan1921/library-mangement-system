@@ -13,6 +13,7 @@ export default function Sidebar({ role = 'admin' }) {
         { name: 'Borrowing & Returns', path: '/admin/borrows', icon: '🔄' },
         { name: 'Reservations', path: '/admin/reservations', icon: '📅' },
         { name: 'Fines & Payments', path: '/admin/fines', icon: '💰' },
+        { name: 'Notifications', path: '/admin/notifications', icon: '🔔' },
         { name: 'Reports & Analytics', path: '/admin/reports', icon: '📈' },
         { name: 'System Settings', path: '/admin/settings', icon: '⚙️' },
         { name: 'Admin Accounts', path: '/admin/admins', icon: '👨‍💼' },

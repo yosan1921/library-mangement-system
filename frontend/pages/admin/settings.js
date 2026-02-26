@@ -295,6 +295,18 @@ export default function SystemSettings() {
                 />
             </div>
 
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Email Password</label>
+                <input
+                    type="password"
+                    style={styles.input}
+                    value={formData.emailPassword || ''}
+                    onChange={(e) => handleInputChange('emailPassword', e.target.value)}
+                    placeholder="Enter email password"
+                />
+                <small style={styles.helpText}>Password for email authentication</small>
+            </div>
+
             <h3 style={styles.subsectionTitle}>SMS Configuration</h3>
 
             <div style={styles.formGroup}>
@@ -309,6 +321,18 @@ export default function SystemSettings() {
                     <option value="nexmo">Nexmo</option>
                     <option value="aws-sns">AWS SNS</option>
                 </select>
+            </div>
+
+            <div style={styles.formGroup}>
+                <label style={styles.label}>SMS API Key</label>
+                <input
+                    type="password"
+                    style={styles.input}
+                    value={formData.smsApiKey || ''}
+                    onChange={(e) => handleInputChange('smsApiKey', e.target.value)}
+                    placeholder="Enter SMS API key"
+                />
+                <small style={styles.helpText}>API key for SMS provider authentication</small>
             </div>
 
             <div style={styles.buttonGroup}>
