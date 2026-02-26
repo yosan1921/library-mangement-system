@@ -51,7 +51,8 @@ public class AuthService {
                 response.put("username", admin.getUsername());
                 response.put("fullName", admin.getFullName());
                 response.put("email", admin.getEmail());
-                response.put("role", admin.getRole().toLowerCase());
+                response.put("phone", admin.getPhone());
+                response.put("role", admin.getRole()); // Keep original case (SUPER_ADMIN, ADMIN, etc.)
                 response.put("permissions", admin.getPermissions());
                 System.out.println("Authentication successful!");
                 return response;

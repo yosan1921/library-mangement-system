@@ -67,8 +67,14 @@ public class SystemSettingsService {
         if (newSettings.getEmailUsername() != null) {
             currentSettings.setEmailUsername(newSettings.getEmailUsername());
         }
+        if (newSettings.getEmailPassword() != null) {
+            currentSettings.setEmailPassword(newSettings.getEmailPassword());
+        }
         if (newSettings.getSmsProvider() != null) {
             currentSettings.setSmsProvider(newSettings.getSmsProvider());
+        }
+        if (newSettings.getSmsApiKey() != null) {
+            currentSettings.setSmsApiKey(newSettings.getSmsApiKey());
         }
         
         // Update library information

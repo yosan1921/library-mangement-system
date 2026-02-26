@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from '../../components/Sidebar';
 import Navbar from '../../components/Navbar';
+import { API_ENDPOINTS } from '../../config/api';
 
 export default function AdminManagement() {
     const [activeTab, setActiveTab] = useState('list');
@@ -8,15 +9,8 @@ export default function AdminManagement() {
     const [selectedAdmin, setSelectedAdmin] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Current logged-in admin (simulated)
-    const currentAdmin = {
-        id: '1',
-        username: 'admin',
-        fullName: 'System Administrator',
-        email: 'admin@library.com',
-        phone: '(123) 456-7890',
-        role: 'SUPER_ADMIN',
-    };
+    // Current logged-in admin from localStorage
+    const [currentAdmin, setCurrentAdmin] = useState(null);
 
     // Form states
     const [profileForm, setProfileForm] = useState({
@@ -64,47 +58,39 @@ export default function AdminManagement() {
     ];
 
     useEffect(() => {
+        // Load current admin from localStorage
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            setCurrentAdmin(user);
+            setProfileForm({
+                fullName: user.fullName || '',
+                email: user.email || '',
+                phone: user.phone || '',
+            });
+        }
         loadAdmins();
-        setProfileForm({
-            fullName: currentAdmin.fullName,
-            email: currentAdmin.email,
-            phone: currentAdmin.phone,
-        });
     }, []);
 
-    const loadAdmins = () => {
-        setAdmins([
-            {
-                id: '1',
-                username: 'admin',
-                fullName: 'System Administrator',
-                email: 'admin@library.com',
-                role: 'SUPER_ADMIN',
-                active: true,
-                permissions: ['ALL'],
-                lastLogin: '2024-01-15T10:30:00',
-            },
-            {
-                id: '2',
-                username: 'librarian1',
-                fullName: 'John Librarian',
-                email: 'john@library.com',
-                role: 'LIBRARIAN',
-                active: true,
-                permissions: ['MANAGE_BORROWS', 'MANAGE_RESERVATIONS'],
-                lastLogin: '2024-01-14T14:20:00',
-            },
-            {
-                id: '3',
-                username: 'admin2',
-                fullName: 'Jane Admin',
-                email: 'jane@library.com',
-                role: 'ADMIN',
-                active: false,
-                permissions: ['MANAGE_BOOKS', 'MANAGE_MEMBERS', 'VIEW_REPORTS'],
-                lastLogin: '2024-01-10T09:15:00',
-            },
-        ]);
+    const loadAdmins = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(API_ENDPOINTS.ADMINS.BASE);
+            if (response.ok) {
+                const data = await response.json();
+                setAdmins(data);
+            } else {
+                console.error('Failed to load admins');
+                alert('Failed to load admins. Status: ' + response.status);
+            }
+        } catch (error) {
+            console.error('Error loading admins:', error);
+            if (error.message === 'Failed to fetch') {
+                alert('Cannot connect to server. Please ensure the backend is running at http://localhost:8080');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Step 1 – clicking "Update Profile" opens the hidden file input
@@ -126,19 +112,57 @@ export default function AdminManagement() {
     };
 
     // Step 3 – actual form submit; only succeeds after a photo is selected
-    const handleUpdateProfile = (e) => {
+    const handleUpdateProfile = async (e) => {
         e.preventDefault();
-        if (!profilePhoto) {
-            alert('Please select a profile photo first.');
+        if (!currentAdmin) {
+            alert('No admin logged in');
             return;
         }
-        // ── backend call would go here when API is ready ──
-        alert('Profile updated successfully!');
-        setProfilePhoto(null);
+
+        try {
+            setLoading(true);
+            const response = await fetch(API_ENDPOINTS.ADMINS.UPDATE_PROFILE(currentAdmin.id), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(profileForm),
+            });
+
+            if (response.ok) {
+                const updatedAdmin = await response.json();
+                // Update localStorage
+                const userData = JSON.parse(localStorage.getItem('user'));
+                userData.fullName = updatedAdmin.fullName;
+                userData.email = updatedAdmin.email;
+                userData.phone = updatedAdmin.phone;
+                localStorage.setItem('user', JSON.stringify(userData));
+                setCurrentAdmin(userData);
+
+                alert('Profile updated successfully!');
+                setProfilePhoto(null);
+                setProfilePhotoPreview(null);
+            } else {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || 'Failed to update profile';
+                alert('Failed to update profile: ' + errorMessage);
+                console.error('Error details:', errorData);
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Error updating profile');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleChangePassword = (e) => {
+    const handleChangePassword = async (e) => {
         e.preventDefault();
+        if (!currentAdmin) {
+            alert('No admin logged in');
+            return;
+        }
+
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
             alert('Passwords do not match!');
             return;
@@ -147,17 +171,74 @@ export default function AdminManagement() {
             alert('Password must be at least 6 characters!');
             return;
         }
-        alert('Password changed successfully!');
-        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+        try {
+            setLoading(true);
+            const response = await fetch(API_ENDPOINTS.ADMINS.UPDATE_PASSWORD(currentAdmin.id), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    oldPassword: passwordForm.currentPassword,
+                    newPassword: passwordForm.newPassword,
+                }),
+            });
+
+            if (response.ok) {
+                alert('Password changed successfully!');
+                setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || 'Failed to change password';
+                alert('Failed to change password: ' + errorMessage);
+                console.error('Error details:', errorData);
+            }
+        } catch (error) {
+            console.error('Error changing password:', error);
+            alert('Error changing password');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleCreateAdmin = (e) => {
+    const handleCreateAdmin = async (e) => {
         e.preventDefault();
-        alert('Admin created successfully!');
-        setNewAdminForm({
-            username: '', password: '', fullName: '', email: '', phone: '', role: 'ADMIN', permissions: [],
-        });
-        loadAdmins();
+
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_ENDPOINTS.ADMINS.BASE}?createdBy=${currentAdmin?.username || 'admin'}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newAdminForm),
+            });
+
+            if (response.ok) {
+                alert('Admin created successfully!');
+                setNewAdminForm({
+                    username: '', password: '', fullName: '', email: '', phone: '', role: 'ADMIN', permissions: [],
+                });
+                loadAdmins();
+                setActiveTab('list');
+            } else {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || 'Failed to create admin';
+                alert('Failed to create admin: ' + errorMessage);
+                console.error('Error details:', errorData);
+            }
+        } catch (error) {
+            console.error('Error creating admin:', error);
+            // Check if it's a network error
+            if (error.message === 'Failed to fetch') {
+                alert('Error creating admin: Cannot connect to server. Please ensure the backend is running at http://localhost:8080');
+            } else {
+                alert('Error creating admin: ' + error.message);
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleTogglePermission = (permissionId) => {
@@ -169,18 +250,59 @@ export default function AdminManagement() {
         }));
     };
 
-    const handleToggleAdminStatus = (adminId) => {
+    const handleToggleAdminStatus = async (adminId) => {
         const admin = admins.find(a => a.id === adminId);
-        if (confirm(`Are you sure you want to ${admin.active ? 'deactivate' : 'activate'} this admin?`)) {
-            alert(`Admin ${admin.active ? 'deactivated' : 'activated'} successfully!`);
-            loadAdmins();
+        if (!admin) return;
+
+        const action = admin.active ? 'deactivate' : 'activate';
+        if (confirm(`Are you sure you want to ${action} this admin?`)) {
+            try {
+                setLoading(true);
+                const response = await fetch(API_ENDPOINTS.ADMINS[action.toUpperCase()](adminId), {
+                    method: 'POST',
+                });
+
+                if (response.ok) {
+                    alert(`Admin ${action}d successfully!`);
+                    loadAdmins();
+                } else {
+                    const errorData = await response.json();
+                    const errorMessage = errorData.error || `Failed to ${action} admin`;
+                    alert(`Failed to ${action} admin: ` + errorMessage);
+                    console.error('Error details:', errorData);
+                }
+            } catch (error) {
+                console.error(`Error ${action}ing admin:`, error);
+                alert(`Error ${action}ing admin`);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
-    const handleDeleteAdmin = (adminId) => {
+    const handleDeleteAdmin = async (adminId) => {
         if (confirm('Are you sure you want to delete this admin? This action cannot be undone.')) {
-            alert('Admin deleted successfully!');
-            loadAdmins();
+            try {
+                setLoading(true);
+                const response = await fetch(API_ENDPOINTS.ADMINS.BY_ID(adminId), {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert('Admin deleted successfully!');
+                    loadAdmins();
+                } else {
+                    const errorData = await response.json();
+                    const errorMessage = errorData.error || 'Failed to delete admin';
+                    alert('Failed to delete admin: ' + errorMessage);
+                    console.error('Error details:', errorData);
+                }
+            } catch (error) {
+                console.error('Error deleting admin:', error);
+                alert('Error deleting admin');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -193,101 +315,108 @@ export default function AdminManagement() {
 
     /* ═══════════════ TAB CONTENT RENDERERS ═══════════════ */
 
-    const renderProfileTab = () => (
-        <div className="adm-tab-content">
-            <div className="adm-section-card">
-                <h2 className="adm-section-title">My Profile</h2>
-
-                {/* Hidden file input – accept images; capture="environment" opens camera on mobile */}
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    style={{ display: 'none' }}
-                    onChange={handleProfilePhotoChange}
-                />
-
-                {/* Profile header */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: '1.25rem',
-                    padding: '1.25rem', background: 'linear-gradient(135deg, #f8fafc, #eef2ff)',
-                    borderRadius: '14px', marginBottom: '1.75rem', flexWrap: 'wrap',
-                }}>
-                    {/* Avatar — shows photo preview if one is selected, otherwise emoji */}
-                    <div style={{
-                        width: '72px', height: '72px', borderRadius: '18px',
-                        background: profilePhotoPreview ? 'transparent' : roleMeta[currentAdmin.role].gradient,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        flexShrink: 0, overflow: 'hidden',
-                    }}>
-                        {profilePhotoPreview
-                            ? <img src={profilePhotoPreview} alt="preview"
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            : roleMeta[currentAdmin.role].emoji
-                        }
-                    </div>
-
-                    <div style={{ minWidth: 0 }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0 }}>{currentAdmin.fullName}</h3>
-                        <p style={{ color: '#6b7280', margin: '2px 0', fontWeight: 600, fontSize: '0.85rem' }}>{currentAdmin.role.replace('_', ' ')}</p>
-                        <p style={{ color: '#9ca3af', margin: 0, fontSize: '0.8rem', fontWeight: 500 }}>@{currentAdmin.username}</p>
-
-                        {/* Change Photo button opens the file picker / camera */}
-                        <button
-                            type="button"
-                            className="adm-btn adm-btn-secondary"
-                            style={{ marginTop: '0.6rem', fontSize: '0.78rem', padding: '0.35rem 0.85rem' }}
-                            onClick={handleProfilePhotoClick}
-                        >
-                            📷 {profilePhotoPreview ? 'Change Photo' : 'Add Photo'}
-                        </button>
-                        {profilePhotoPreview && (
-                            <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
-                                ✓ Photo selected — submit the form to update
-                            </p>
-                        )}
+    const renderProfileTab = () => {
+        if (!currentAdmin) {
+            return (
+                <div className="adm-tab-content">
+                    <div className="adm-section-card">
+                        <p>Loading profile...</p>
                     </div>
                 </div>
+            );
+        }
 
-                {/* Form */}
-                <form onSubmit={handleUpdateProfile} style={{ maxWidth: '540px' }}>
-                    <div className="adm-form-group">
-                        <label className="adm-label">Full Name</label>
-                        <input className="adm-input" type="text" value={profileForm.fullName}
-                            onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })} required />
-                    </div>
-                    <div className="adm-form-group">
-                        <label className="adm-label">Email</label>
-                        <input className="adm-input" type="email" value={profileForm.email}
-                            onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} required />
-                    </div>
-                    <div className="adm-form-group">
-                        <label className="adm-label">Phone</label>
-                        <input className="adm-input" type="tel" value={profileForm.phone}
-                            onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} />
-                    </div>
+        return (
+            <div className="adm-tab-content">
+                <div className="adm-section-card">
+                    <h2 className="adm-section-title">My Profile</h2>
 
-                    {/* Update Profile button — clicking it prompts for a photo then submits */}
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <button
-                            type="button"
-                            className="adm-btn adm-btn-primary"
-                            onClick={handleProfilePhotoClick}
-                        >
-                            📷 Update Profile
-                        </button>
-                        {profilePhotoPreview && (
-                            <button type="submit" className="adm-btn adm-btn-success">
-                                ✓ Save Changes
+                    {/* Hidden file input – accept images; capture="environment" opens camera on mobile */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        style={{ display: 'none' }}
+                        onChange={handleProfilePhotoChange}
+                    />
+
+                    {/* Profile header */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '1.25rem',
+                        padding: '1.25rem', background: 'linear-gradient(135deg, #f8fafc, #eef2ff)',
+                        borderRadius: '14px', marginBottom: '1.75rem', flexWrap: 'wrap',
+                    }}>
+                        {/* Avatar — shows photo preview if one is selected, otherwise emoji */}
+                        <div style={{
+                            width: '72px', height: '72px', borderRadius: '18px',
+                            background: profilePhotoPreview ? 'transparent' : roleMeta[currentAdmin.role]?.gradient || roleMeta.ADMIN.gradient,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            flexShrink: 0, overflow: 'hidden',
+                        }}>
+                            {profilePhotoPreview
+                                ? <img src={profilePhotoPreview} alt="preview"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                : (roleMeta[currentAdmin.role]?.emoji || roleMeta.ADMIN.emoji)
+                            }
+                        </div>
+
+                        <div style={{ minWidth: 0 }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0 }}>{currentAdmin.fullName}</h3>
+                            <p style={{ color: '#6b7280', margin: '2px 0', fontWeight: 600, fontSize: '0.85rem' }}>{currentAdmin.role?.replace('_', ' ')}</p>
+                            <p style={{ color: '#9ca3af', margin: 0, fontSize: '0.8rem', fontWeight: 500 }}>@{currentAdmin.username}</p>
+
+                            {/* Change Photo button opens the file picker / camera */}
+                            <button
+                                type="button"
+                                className="adm-btn adm-btn-secondary"
+                                style={{ marginTop: '0.6rem', fontSize: '0.78rem', padding: '0.35rem 0.85rem' }}
+                                onClick={handleProfilePhotoClick}
+                            >
+                                📷 {profilePhotoPreview ? 'Change Photo' : 'Add Photo'}
                             </button>
-                        )}
+                            {profilePhotoPreview && (
+                                <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
+                                    ✓ Photo selected — submit the form to update
+                                </p>
+                            )}
+                        </div>
                     </div>
-                </form>
+
+                    {/* Form */}
+                    <form onSubmit={handleUpdateProfile} style={{ maxWidth: '540px' }}>
+                        <div className="adm-form-group">
+                            <label className="adm-label">Full Name</label>
+                            <input className="adm-input" type="text" value={profileForm.fullName}
+                                onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })} required />
+                        </div>
+                        <div className="adm-form-group">
+                            <label className="adm-label">Email</label>
+                            <input className="adm-input" type="email" value={profileForm.email}
+                                onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} required />
+                        </div>
+                        <div className="adm-form-group">
+                            <label className="adm-label">Phone</label>
+                            <input className="adm-input" type="tel" value={profileForm.phone}
+                                onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} />
+                        </div>
+
+                        {/* Update Profile button */}
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <button
+                                type="submit"
+                                className="adm-btn adm-btn-primary"
+                                disabled={loading}
+                            >
+                                {loading ? 'Updating...' : '✓ Update Profile'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderPasswordTab = () => (
         <div className="adm-tab-content">
@@ -313,7 +442,9 @@ export default function AdminManagement() {
                         <input className="adm-input" type="password" value={passwordForm.confirmPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} required />
                     </div>
-                    <button type="submit" className="adm-btn adm-btn-primary">Change Password</button>
+                    <button type="submit" className="adm-btn adm-btn-primary" disabled={loading}>
+                        {loading ? 'Changing...' : 'Change Password'}
+                    </button>
                 </form>
             </div>
         </div>
@@ -327,72 +458,77 @@ export default function AdminManagement() {
                     <button className="adm-btn adm-btn-success" onClick={() => setActiveTab('create')}>+ Add New Admin</button>
                 </div>
 
-                <div className="adm-admin-grid">
-                    {admins.map((admin) => {
-                        const rm = roleMeta[admin.role] || roleMeta.ADMIN;
-                        return (
-                            <div key={admin.id} className="adm-admin-card">
-                                {/* Card header */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
-                                    <div style={{
-                                        width: '46px', height: '46px', borderRadius: '14px',
-                                        background: rm.gradient, display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', fontSize: '1.35rem', flexShrink: 0,
-                                        boxShadow: '0 3px 8px rgba(0,0,0,0.1)',
-                                    }}>
-                                        {rm.emoji}
+                {loading ? (
+                    <p>Loading admins...</p>
+                ) : (
+                    <div className="adm-admin-grid">
+                        {admins.map((admin) => {
+                            const rm = roleMeta[admin.role] || roleMeta.ADMIN;
+                            return (
+                                <div key={admin.id} className="adm-admin-card">
+                                    {/* Card header */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
+                                        <div style={{
+                                            width: '46px', height: '46px', borderRadius: '14px',
+                                            background: rm.gradient, display: 'flex', alignItems: 'center',
+                                            justifyContent: 'center', fontSize: '1.35rem', flexShrink: 0,
+                                            boxShadow: '0 3px 8px rgba(0,0,0,0.1)',
+                                        }}>
+                                            {rm.emoji}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{admin.fullName}</h3>
+                                            <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: 0, fontWeight: 500 }}>@{admin.username}</p>
+                                        </div>
+                                        <span style={{
+                                            padding: '0.2rem 0.65rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 700,
+                                            backgroundColor: admin.active ? '#d1fae5' : '#fee2e2',
+                                            color: admin.active ? '#065f46' : '#991b1b',
+                                        }}>
+                                            {admin.active ? 'Active' : 'Inactive'}
+                                        </span>
                                     </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{admin.fullName}</h3>
-                                        <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: 0, fontWeight: 500 }}>@{admin.username}</p>
+
+                                    {/* Details */}
+                                    <div style={{ fontSize: '0.82rem', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.85rem' }}>
+                                        <p style={{ margin: 0 }}><span style={{ fontWeight: 700, color: '#374151' }}>Email:</span> {admin.email}</p>
+                                        <p style={{ margin: 0 }}><span style={{ fontWeight: 700, color: '#374151' }}>Role:</span> {admin.role.replace('_', ' ')}</p>
+                                        <p style={{ margin: 0 }}><span style={{ fontWeight: 700, color: '#374151' }}>Last Login:</span> {admin.lastLogin ? new Date(admin.lastLogin).toLocaleString() : 'Never'}</p>
                                     </div>
-                                    <span style={{
-                                        padding: '0.2rem 0.65rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 700,
-                                        backgroundColor: admin.active ? '#d1fae5' : '#fee2e2',
-                                        color: admin.active ? '#065f46' : '#991b1b',
-                                    }}>
-                                        {admin.active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </div>
 
-                                {/* Details */}
-                                <div style={{ fontSize: '0.82rem', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.85rem' }}>
-                                    <p style={{ margin: 0 }}><span style={{ fontWeight: 700, color: '#374151' }}>Email:</span> {admin.email}</p>
-                                    <p style={{ margin: 0 }}><span style={{ fontWeight: 700, color: '#374151' }}>Role:</span> {admin.role.replace('_', ' ')}</p>
-                                    <p style={{ margin: 0 }}><span style={{ fontWeight: 700, color: '#374151' }}>Last Login:</span> {new Date(admin.lastLogin).toLocaleString()}</p>
-                                </div>
+                                    {/* Permissions */}
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <p style={{ fontWeight: 700, color: '#374151', fontSize: '0.8rem', margin: '0 0 0.4rem' }}>Permissions:</p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                                            {(admin.permissions || []).map((perm) => (
+                                                <span key={perm} style={{
+                                                    padding: '0.15rem 0.55rem', borderRadius: '6px', fontSize: '0.7rem',
+                                                    fontWeight: 600, backgroundColor: '#eef2ff', color: '#4338ca',
+                                                }}>
+                                                    {perm}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                                {/* Permissions */}
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <p style={{ fontWeight: 700, color: '#374151', fontSize: '0.8rem', margin: '0 0 0.4rem' }}>Permissions:</p>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-                                        {admin.permissions.map((perm) => (
-                                            <span key={perm} style={{
-                                                padding: '0.15rem 0.55rem', borderRadius: '6px', fontSize: '0.7rem',
-                                                fontWeight: 600, backgroundColor: '#eef2ff', color: '#4338ca',
-                                            }}>
-                                                {perm}
-                                            </span>
-                                        ))}
+                                    {/* Actions */}
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button className="adm-btn adm-btn-warning" style={{ flex: 1, fontSize: '0.8rem', padding: '0.5rem' }}
+                                            onClick={() => handleToggleAdminStatus(admin.id)}
+                                            disabled={loading}>
+                                            {admin.active ? 'Deactivate' : 'Activate'}
+                                        </button>
+                                        <button className="adm-btn adm-btn-danger" style={{ flex: 1, fontSize: '0.8rem', padding: '0.5rem' }}
+                                            onClick={() => handleDeleteAdmin(admin.id)}
+                                            disabled={admin.id === currentAdmin?.id || loading}>
+                                            Delete
+                                        </button>
                                     </div>
                                 </div>
-
-                                {/* Actions */}
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button className="adm-btn adm-btn-warning" style={{ flex: 1, fontSize: '0.8rem', padding: '0.5rem' }}
-                                        onClick={() => handleToggleAdminStatus(admin.id)}>
-                                        {admin.active ? 'Deactivate' : 'Activate'}
-                                    </button>
-                                    <button className="adm-btn adm-btn-danger" style={{ flex: 1, fontSize: '0.8rem', padding: '0.5rem' }}
-                                        onClick={() => handleDeleteAdmin(admin.id)}
-                                        disabled={admin.id === currentAdmin.id}>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -462,7 +598,9 @@ export default function AdminManagement() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                        <button type="submit" className="adm-btn adm-btn-success">Create Admin</button>
+                        <button type="submit" className="adm-btn adm-btn-success" disabled={loading}>
+                            {loading ? 'Creating...' : 'Create Admin'}
+                        </button>
                         <button type="button" className="adm-btn adm-btn-secondary" onClick={() => setActiveTab('list')}>Cancel</button>
                     </div>
                 </form>

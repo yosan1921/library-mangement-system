@@ -45,13 +45,21 @@ public class AdminService {
     }
     
     public Admin createAdmin(Admin admin, String createdBy) {
+        System.out.println("=== Creating Admin ===");
+        System.out.println("Username: " + admin.getUsername());
+        System.out.println("Email: " + admin.getEmail());
+        System.out.println("Role: " + admin.getRole());
+        System.out.println("Created by: " + createdBy);
+        
         // Check if username already exists
         if (adminRepository.findByUsername(admin.getUsername()).isPresent()) {
+            System.err.println("ERROR: Username already exists: " + admin.getUsername());
             throw new RuntimeException("Username already exists");
         }
         
         // Check if email already exists
         if (adminRepository.findByEmail(admin.getEmail()).isPresent()) {
+            System.err.println("ERROR: Email already exists: " + admin.getEmail());
             throw new RuntimeException("Email already exists");
         }
         
@@ -62,13 +70,23 @@ public class AdminService {
         
         // Set default permissions based on role
         if (admin.getPermissions() == null || admin.getPermissions().isEmpty()) {
-            admin.setPermissions(getDefaultPermissionsForRole(admin.getRole()));
+            List<String> defaultPermissions = getDefaultPermissionsForRole(admin.getRole());
+            admin.setPermissions(defaultPermissions);
+            System.out.println("Set default permissions: " + defaultPermissions);
         }
         
         // In production, hash the password here
         // admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         
-        return adminRepository.save(admin);
+        try {
+            Admin savedAdmin = adminRepository.save(admin);
+            System.out.println("Admin created successfully with ID: " + savedAdmin.getId());
+            return savedAdmin;
+        } catch (Exception e) {
+            System.err.println("ERROR saving admin: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save admin: " + e.getMessage());
+        }
     }
     
     public Admin updateAdmin(String id, Admin updatedAdmin) {

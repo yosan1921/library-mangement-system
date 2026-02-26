@@ -63,7 +63,7 @@ public class InitDataController {
     public ResponseEntity<?> initializeTestData() {
         Map<String, Object> result = new HashMap<>();
 
-        // Create test admin if not exists
+        // Create test super admin if not exists
         if (!adminRepository.findByUsername("admin").isPresent()) {
             Admin admin = new Admin();
             admin.setUsername("admin");
@@ -71,12 +71,22 @@ public class InitDataController {
             admin.setEmail("admin@library.com");
             admin.setFullName("System Administrator");
             admin.setPhone("1234567890");
-            admin.setRole("ADMIN");
-            admin.setPermissions(Arrays.asList("ALL"));
+            admin.setRole("SUPER_ADMIN");
+            admin.setPermissions(Arrays.asList(
+                "MANAGE_BOOKS",
+                "MANAGE_MEMBERS",
+                "MANAGE_BORROWS",
+                "MANAGE_RESERVATIONS",
+                "MANAGE_FINES",
+                "VIEW_REPORTS",
+                "MANAGE_SETTINGS",
+                "MANAGE_ADMINS"
+            ));
             admin.setActive(true);
             admin.setCreatedDate(LocalDateTime.now());
+            admin.setCreatedBy("SYSTEM");
             adminRepository.save(admin);
-            result.put("admin", "Created test admin: username=admin, password=admin123");
+            result.put("admin", "Created test admin: username=admin, password=admin123, role=SUPER_ADMIN");
         } else {
             result.put("admin", "Admin already exists");
         }

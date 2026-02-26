@@ -46,6 +46,13 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- JavaMail for Email Notifications -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
         <!-- Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -24,7 +24,9 @@ public class SystemSettings {
     private String emailHost;
     private Integer emailPort;
     private String emailUsername;
+    private String emailPassword;
     private String smsProvider;
+    private String smsApiKey;
     
     // System Settings
     private String libraryName;
@@ -89,8 +91,14 @@ public class SystemSettings {
     public String getEmailUsername() { return emailUsername; }
     public void setEmailUsername(String emailUsername) { this.emailUsername = emailUsername; }
     
+    public String getEmailPassword() { return emailPassword; }
+    public void setEmailPassword(String emailPassword) { this.emailPassword = emailPassword; }
+    
     public String getSmsProvider() { return smsProvider; }
     public void setSmsProvider(String smsProvider) { this.smsProvider = smsProvider; }
+    
+    public String getSmsApiKey() { return smsApiKey; }
+    public void setSmsApiKey(String smsApiKey) { this.smsApiKey = smsApiKey; }
     
     public String getLibraryName() { return libraryName; }
     public void setLibraryName(String libraryName) { this.libraryName = libraryName; }

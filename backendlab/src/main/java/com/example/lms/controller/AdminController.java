@@ -46,69 +46,83 @@ public class AdminController {
     }
     
     @PostMapping
-    public ResponseEntity<Admin> createAdmin(@RequestBody Admin admin, 
-                                             @RequestParam(defaultValue = "admin") String createdBy) {
+    public ResponseEntity<?> createAdmin(@RequestBody Admin admin, 
+                                         @RequestParam(defaultValue = "admin") String createdBy) {
         try {
-            return ResponseEntity.ok(adminService.createAdmin(admin, createdBy));
+            Admin createdAdmin = adminService.createAdmin(admin, createdBy);
+            return ResponseEntity.ok(createdAdmin);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error creating admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<Admin> updateAdmin(@PathVariable String id, @RequestBody Admin admin) {
+    public ResponseEntity<?> updateAdmin(@PathVariable String id, @RequestBody Admin admin) {
         try {
-            return ResponseEntity.ok(adminService.updateAdmin(id, admin));
+            Admin updatedAdmin = adminService.updateAdmin(id, admin);
+            return ResponseEntity.ok(updatedAdmin);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error updating admin: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
     @PutMapping("/{id}/password")
-    public ResponseEntity<Admin> updatePassword(@PathVariable String id, @RequestBody Map<String, String> passwords) {
+    public ResponseEntity<?> updatePassword(@PathVariable String id, @RequestBody Map<String, String> passwords) {
         try {
             String oldPassword = passwords.get("oldPassword");
             String newPassword = passwords.get("newPassword");
-            return ResponseEntity.ok(adminService.updatePassword(id, oldPassword, newPassword));
+            Admin updatedAdmin = adminService.updatePassword(id, oldPassword, newPassword);
+            return ResponseEntity.ok(updatedAdmin);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error updating password: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
     @PutMapping("/{id}/profile")
-    public ResponseEntity<Admin> updateProfile(@PathVariable String id, @RequestBody Admin profileData) {
+    public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody Admin profileData) {
         try {
-            return ResponseEntity.ok(adminService.updateProfile(id, profileData));
+            Admin updatedAdmin = adminService.updateProfile(id, profileData);
+            return ResponseEntity.ok(updatedAdmin);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error updating profile: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAdmin(@PathVariable String id) {
+    public ResponseEntity<?> deleteAdmin(@PathVariable String id) {
         try {
             adminService.deleteAdmin(id);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(Map.of("message", "Admin deleted successfully"));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error deleting admin: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
     @PostMapping("/{id}/deactivate")
-    public ResponseEntity<Admin> deactivateAdmin(@PathVariable String id) {
+    public ResponseEntity<?> deactivateAdmin(@PathVariable String id) {
         try {
-            return ResponseEntity.ok(adminService.deactivateAdmin(id));
+            Admin deactivatedAdmin = adminService.deactivateAdmin(id);
+            return ResponseEntity.ok(deactivatedAdmin);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error deactivating admin: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
     @PostMapping("/{id}/activate")
-    public ResponseEntity<Admin> activateAdmin(@PathVariable String id) {
+    public ResponseEntity<?> activateAdmin(@PathVariable String id) {
         try {
-            return ResponseEntity.ok(adminService.activateAdmin(id));
+            Admin activatedAdmin = adminService.activateAdmin(id);
+            return ResponseEntity.ok(activatedAdmin);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error activating admin: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
