@@ -28,7 +28,7 @@ public class AuthService {
     public Map<String, Object> authenticate(String username, String password) {
         System.out.println("=== Authentication Attempt ===");
         System.out.println("Username: " + username);
-        System.out.println("Password: " + password);
+        System.out.println("Password: [HIDDEN]");
         
         try {
             // First, try to authenticate as Admin
@@ -36,7 +36,7 @@ public class AuthService {
             System.out.println("Admin found: " + (admin != null));
             
             if (admin != null) {
-                System.out.println("Admin password in DB: " + admin.getPassword());
+                System.out.println("Admin password in DB: [HIDDEN]");
                 System.out.println("Password matches: " + admin.getPassword().equals(password));
                 System.out.println("Admin active: " + admin.getActive());
             }
@@ -67,7 +67,7 @@ public class AuthService {
             System.out.println("Librarian found: " + (librarian != null));
             
             if (librarian != null) {
-                System.out.println("Librarian password in DB: " + librarian.getPassword());
+                System.out.println("Librarian password in DB: [HIDDEN]");
                 System.out.println("Password matches: " + librarian.getPassword().equals(password));
                 System.out.println("Librarian active: " + librarian.isActive());
             }
@@ -93,7 +93,7 @@ public class AuthService {
             System.out.println("Member found: " + (member != null));
             
             if (member != null) {
-                System.out.println("Member password in DB: " + member.getPassword());
+                System.out.println("Member password in DB: [HIDDEN]");
                 System.out.println("Password matches: " + (member.getPassword() != null && member.getPassword().equals(password)));
                 System.out.println("Member active: " + member.getActive());
             }

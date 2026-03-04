@@ -46,6 +46,7 @@ export default function MembersManagement() {
         return members.filter(member => {
             const matchesSearch = searchTerm === '' ||
                 member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 member.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 member.membershipID?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus =
@@ -67,6 +68,7 @@ export default function MembersManagement() {
         setError(null);
         setSuccess(null);
 
+<<<<<<< HEAD
         // Validate required fields
         if (!formData.name || !formData.email || !formData.contact || !formData.membershipID) {
             setError('Please fill in all required fields (Name, Email, Phone, Membership ID)');
@@ -81,6 +83,21 @@ export default function MembersManagement() {
         }
 
         // Validate phone format (basic validation)
+=======
+        if (!formData.name || !formData.email || !formData.contact || !formData.membershipID) {
+            setError('Please fill in all required fields (Name, Email, Phone, and Membership ID)');
+            return;
+        }
+
+        // Enhanced email validation for Gmail and other providers
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Please enter a valid email address (e.g., example@gmail.com)');
+            return;
+        }
+
+        // Basic phone validation (optional - can be customized)
+>>>>>>> ce9e8d1 (final lms)
         if (formData.contact.length < 10) {
             setError('Please enter a valid phone number (at least 10 digits)');
             return;
@@ -134,6 +151,7 @@ export default function MembersManagement() {
     const resetForm = () => {
         setFormData({
             name: '',
+            email: '',
             contact: '',
             membershipID: '',
             active: true,
@@ -235,20 +253,31 @@ export default function MembersManagement() {
                                     <label style={styles.label}>Email Address <span style={styles.required}>*</span></label>
                                     <input
                                         type="email"
+<<<<<<< HEAD
                                         placeholder="example@gmail.com"
+=======
+                                        placeholder="Enter email address (e.g., john.doe@gmail.com)"
+>>>>>>> ce9e8d1 (final lms)
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         required
                                         style={styles.input}
                                         disabled={loading}
                                     />
+<<<<<<< HEAD
                                     <small style={styles.helpText}>Required for email notifications</small>
+=======
+>>>>>>> ce9e8d1 (final lms)
                                 </div>
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Phone Number <span style={styles.required}>*</span></label>
                                     <input
                                         type="tel"
+<<<<<<< HEAD
                                         placeholder="+251912345678"
+=======
+                                        placeholder="Enter phone number (e.g., +251912345678)"
+>>>>>>> ce9e8d1 (final lms)
                                         value={formData.contact}
                                         onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                                         required
@@ -312,7 +341,7 @@ export default function MembersManagement() {
                             <span style={styles.searchIcon}>🔍</span>
                             <input
                                 type="text"
-                                placeholder="Search by name, contact or ID…"
+                                placeholder="Search by name, email, phone or ID…"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 style={styles.searchInput}
@@ -400,7 +429,8 @@ export default function MembersManagement() {
                                     <tr>
                                         <th style={styles.th}>Member</th>
                                         <th style={styles.th}>Membership ID</th>
-                                        <th style={styles.th}>Contact</th>
+                                        <th style={styles.th}>Email</th>
+                                        <th style={styles.th}>Phone</th>
                                         <th style={styles.th}>Role</th>
                                         <th style={{ ...styles.th, textAlign: 'center' }}>Status</th>
                                         <th style={{ ...styles.th, textAlign: 'center' }}>Actions</th>
@@ -420,7 +450,8 @@ export default function MembersManagement() {
                                             <td style={{ ...styles.td, fontFamily: 'monospace', fontSize: '0.85rem' }}>
                                                 {member.membershipID}
                                             </td>
-                                            <td style={styles.td}>{member.contact}</td>
+                                            <td style={styles.td}>{member.email || 'Not provided'}</td>
+                                            <td style={styles.td}>{member.contact || 'Not provided'}</td>
                                             <td style={styles.td}>
                                                 <span style={styles.roleBadge}>{member.role}</span>
                                             </td>

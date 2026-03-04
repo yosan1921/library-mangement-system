@@ -4,10 +4,12 @@ import com.example.lms.model.BorrowRecord;
 import com.example.lms.model.Fine;
 import com.example.lms.model.Member;
 import com.example.lms.model.Payment;
+import com.example.lms.model.Member;
 import com.example.lms.repository.BorrowRecordRepository;
 import com.example.lms.repository.FineRepository;
 import com.example.lms.repository.MemberRepository;
 import com.example.lms.repository.PaymentRepository;
+import com.example.lms.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -66,7 +68,21 @@ public class FineService {
         fine.setIssueDate(LocalDate.now());
         fine.setStatus("UNPAID");
         
-        return fineRepository.save(fine);
+        Fine savedFine = fineRepository.save(fine);
+        
+        // Send fine notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(record.getMemberID());
+                if (optMember.isPresent()) {
+                    notificationService.createFineNotification(savedFine, optMember.get());
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send fine notification: " + e.getMessage());
+            }
+        }
+        
+        return savedFine;
     }
     
     public Fine createManualFine(String memberID, Double amount, String reason) {
@@ -78,22 +94,7 @@ public class FineService {
         fine.setIssueDate(LocalDate.now());
         fine.setStatus("UNPAID");
         
-        Fine savedFine = fineRepository.save(fine);
-        
-        // Send notification if service is available
-        if (notificationService != null) {
-            try {
-                Optional<Member> optMember = memberRepository.findById(memberID);
-                if (optMember.isPresent()) {
-                    notificationService.createFineNotification(savedFine, optMember.get());
-                }
-            } catch (Exception e) {
-                // Log error but don't fail the fine creation
-                System.err.println("Failed to create fine notification: " + e.getMessage());
-            }
-        }
-        
-        return savedFine;
+        return fineRepository.save(fine);
     }
     
     public Payment recordPayment(String fineID, Double amount, String paymentMethod, String notes) {
@@ -130,7 +131,20 @@ public class FineService {
             fine.setStatus("PARTIALLY_PAID");
         }
         
-        fineRepository.save(fine);
+        Fine savedFine = fineRepository.save(fine);
+        
+        // Send payment confirmation notification
+        if (notificationService != null && newPaid.equals(fine.getAmount())) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(fine.getMemberID());
+                if (optMember.isPresent()) {
+                    notificationService.createPaymentConfirmationNotification(savedFine, optMember.get(), payment);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send payment confirmation notification: " + e.getMessage());
+            }
+        }
+        
         return payment;
     }
     
@@ -151,8 +165,9 @@ public class FineService {
         Double remainingAmount = fine.getAmount() - currentPaid;
         
         // Create a payment record for the remaining amount
+        Payment payment = null;
         if (remainingAmount > 0) {
-            Payment payment = new Payment();
+            payment = new Payment();
             payment.setFineID(fineID);
             payment.setMemberID(fine.getMemberID());
             payment.setAmount(remainingAmount);
@@ -167,7 +182,21 @@ public class FineService {
         fine.setStatus("PAID");
         fine.setPaidDate(LocalDate.now());
         
-        return fineRepository.save(fine);
+        Fine savedFine = fineRepository.save(fine);
+        
+        // Send payment confirmation notification
+        if (notificationService != null && payment != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(fine.getMemberID());
+                if (optMember.isPresent()) {
+                    notificationService.createPaymentConfirmationNotification(savedFine, optMember.get(), payment);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send payment confirmation notification: " + e.getMessage());
+            }
+        }
+        
+        return savedFine;
     }
     
     public Fine waiveFine(String fineID, String reason) {
@@ -178,7 +207,21 @@ public class FineService {
         fine.setReason(fine.getReason() + " [WAIVED: " + reason + "]");
         fine.setPaidDate(LocalDate.now());
         
-        return fineRepository.save(fine);
+        Fine savedFine = fineRepository.save(fine);
+        
+        // Send fine waiver notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(fine.getMemberID());
+                if (optMember.isPresent()) {
+                    notificationService.createFineWaiverNotification(savedFine, optMember.get(), reason);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send fine waiver notification: " + e.getMessage());
+            }
+        }
+        
+        return savedFine;
     }
     
     public List<Fine> getAllFines() {

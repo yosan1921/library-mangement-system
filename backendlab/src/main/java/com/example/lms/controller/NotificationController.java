@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -138,6 +139,29 @@ public class NotificationController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Failed to trigger notifications: " + e.getMessage()));
+        }
+    }
+
+    // Check notification system status
+    @GetMapping("/system-status")
+    public ResponseEntity<Map<String, Object>> getNotificationSystemStatus() {
+        try {
+            Map<String, Object> status = new HashMap<>();
+            
+            // Get basic statistics
+            Map<String, Object> stats = notificationService.getNotificationStatistics();
+            status.put("statistics", stats);
+            
+            // Check if notifications are enabled (this will be handled by the service)
+            status.put("systemReady", true);
+            status.put("message", "Notification system is operational");
+            
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            Map<String, Object> errorStatus = new HashMap<>();
+            errorStatus.put("systemReady", false);
+            errorStatus.put("error", e.getMessage());
+            return ResponseEntity.ok(errorStatus);
         }
     }
 }

@@ -1,0 +1,28 @@
+### Test basic connectivity
+GET http://localhost:8081/api/init/check-users
+
+### Initialize notification system
+POST http://localhost:8081/api/init/notification-system
+Content-Type: application/json
+
+### Fix notification issues (email addresses, settings)
+POST http://localhost:8081/api/init/fix-notifications
+Content-Type: application/json
+
+### Check notification system status
+GET http://localhost:8081/api/notifications/system-status
+
+### Test notification configuration
+POST http://localhost:8081/api/notifications/test
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "phone": "+1234567890"
+}
+
+### Get all notifications
+GET http://localhost:8081/api/notifications
+
+### Trigger automatic notifications manually
+POST http://localhost:8081/api/notifications/trigger-automatic

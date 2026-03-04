@@ -2,12 +2,15 @@ package com.example.lms.service;
 
 import com.example.lms.model.Book;
 import com.example.lms.model.BorrowRecord;
+import com.example.lms.model.Member;
 import com.example.lms.repository.BookRepository;
 import com.example.lms.repository.BorrowRecordRepository;
+import com.example.lms.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BorrowService {
@@ -17,6 +20,12 @@ public class BorrowService {
     
     @Autowired
     private BookRepository bookRepository;
+    
+    @Autowired
+    private MemberRepository memberRepository;
+    
+    @Autowired(required = false)
+    private NotificationService notificationService;
     
     public BorrowRecord issueBook(String memberID, String bookID) {
         // Validate inputs
@@ -69,7 +78,21 @@ public class BorrowService {
         bookRepository.save(book);
         
         record.setStatus("APPROVED");
-        return borrowRecordRepository.save(record);
+        BorrowRecord savedRecord = borrowRecordRepository.save(record);
+        
+        // Send borrow approval notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(record.getMemberID());
+                if (optMember.isPresent()) {
+                    notificationService.createBorrowApprovalNotification(savedRecord, optMember.get(), book);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send borrow approval notification: " + e.getMessage());
+            }
+        }
+        
+        return savedRecord;
     }
     
     public BorrowRecord rejectBorrowRequest(String recordId) {
@@ -81,7 +104,22 @@ public class BorrowService {
         }
         
         record.setStatus("REJECTED");
-        return borrowRecordRepository.save(record);
+        BorrowRecord savedRecord = borrowRecordRepository.save(record);
+        
+        // Send borrow rejection notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(record.getMemberID());
+                Optional<Book> optBook = bookRepository.findById(record.getBookID());
+                if (optMember.isPresent() && optBook.isPresent()) {
+                    notificationService.createBorrowRejectionNotification(savedRecord, optMember.get(), optBook.get());
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send borrow rejection notification: " + e.getMessage());
+            }
+        }
+        
+        return savedRecord;
     }
     
     public List<BorrowRecord> getPendingRequests() {
@@ -104,7 +142,21 @@ public class BorrowService {
         
         record.setReturnDate(LocalDate.now());
         record.setStatus("RETURNED");
-        return borrowRecordRepository.save(record);
+        BorrowRecord savedRecord = borrowRecordRepository.save(record);
+        
+        // Send book return confirmation notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(record.getMemberID());
+                if (optMember.isPresent()) {
+                    notificationService.createBookReturnConfirmationNotification(savedRecord, optMember.get(), book);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send book return confirmation notification: " + e.getMessage());
+            }
+        }
+        
+        return savedRecord;
     }
     
     public List<BorrowRecord> getMemberBorrowHistory(String memberID) {

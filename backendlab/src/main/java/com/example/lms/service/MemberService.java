@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Random;
 
 @Service
 public class MemberService {
@@ -39,6 +40,27 @@ public class MemberService {
     
     // Step 1: Member Registration
     public Member registerMember(Member member) {
+        // Validate required fields
+        if (member.getName() == null || member.getName().trim().isEmpty()) {
+            throw new RuntimeException("Name is required");
+        }
+        if (member.getEmail() == null || member.getEmail().trim().isEmpty()) {
+            throw new RuntimeException("Email is required");
+        }
+        if (member.getContact() == null || member.getContact().trim().isEmpty()) {
+            throw new RuntimeException("Phone number is required");
+        }
+        
+        // Validate email format
+        if (!isValidEmail(member.getEmail())) {
+            throw new RuntimeException("Please enter a valid email address");
+        }
+        
+        // Validate phone format
+        if (member.getContact().length() < 10) {
+            throw new RuntimeException("Please enter a valid phone number (at least 10 digits)");
+        }
+        
         // Check if email already exists
         if (memberRepository.findByEmail(member.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered");
@@ -48,8 +70,10 @@ public class MemberService {
         String membershipID = generateMembershipID();
         member.setMembershipID(membershipID);
         
-        // Encrypt password
-        member.setPassword(passwordEncoder.encode(member.getPassword()));
+        // Encrypt password if provided
+        if (member.getPassword() != null && !member.getPassword().trim().isEmpty()) {
+            member.setPassword(passwordEncoder.encode(member.getPassword()));
+        }
         
         // Set defaults
         member.setActive(true);
@@ -293,18 +317,135 @@ public class MemberService {
     }
     
     public Member addMember(Member member) {
+        // Validate required fields for new members
+        if (member.getName() == null || member.getName().trim().isEmpty()) {
+            throw new RuntimeException("Name is required");
+        }
+        if (member.getEmail() == null || member.getEmail().trim().isEmpty()) {
+            throw new RuntimeException("Email is required");
+        }
+        if (member.getContact() == null || member.getContact().trim().isEmpty()) {
+            throw new RuntimeException("Phone number is required");
+        }
+
+        // Validate email format
+        if (!isValidEmail(member.getEmail())) {
+            throw new RuntimeException("Please enter a valid email address");
+        }
+
+        // Validate phone format (more flexible validation)
+        String cleanContact = member.getContact().replaceAll("[^0-9]", ""); // Remove non-digits
+        if (cleanContact.length() < 8) { // More flexible minimum length
+            throw new RuntimeException("Please enter a valid phone number (at least 8 digits)");
+        }
+        member.setContact(cleanContact); // Store cleaned phone number
+
+        // Check for duplicate email
+        if (memberRepository.findByEmail(member.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        // Check for duplicate username if provided
+        if (member.getUsername() != null && !member.getUsername().trim().isEmpty()) {
+            if (memberRepository.findByUsername(member.getUsername()).isPresent()) {
+                throw new RuntimeException("Username already exists");
+            }
+        } else {
+            // Auto-generate username from email if not provided
+            String emailPrefix = member.getEmail().split("@")[0];
+            String baseUsername = emailPrefix.replaceAll("[^a-zA-Z0-9]", "");
+            String username = baseUsername;
+            int counter = 1;
+            
+            // Ensure username is unique
+            while (memberRepository.findByUsername(username).isPresent()) {
+                username = baseUsername + counter;
+                counter++;
+            }
+            member.setUsername(username);
+        }
+
+        // Auto-generate membership ID if not provided
+        if (member.getMembershipID() == null || member.getMembershipID().trim().isEmpty()) {
+            String generatedID;
+            do {
+                generatedID = generateMembershipID();
+            } while (memberRepository.findByMembershipID(generatedID).isPresent());
+            member.setMembershipID(generatedID);
+        } else {
+            // Check for duplicate membership ID if one was provided
+            if (memberRepository.findByMembershipID(member.getMembershipID()).isPresent()) {
+                throw new RuntimeException("Membership ID already exists");
+            }
+        }
+
+        // Set defaults for new members
+        if (member.getActive() == null) {
+            member.setActive(true);
+        }
+        if (member.getRole() == null || member.getRole().trim().isEmpty()) {
+            member.setRole("MEMBER");
+        }
+        
+        // Encrypt password if provided
+        if (member.getPassword() != null && !member.getPassword().trim().isEmpty()) {
+            member.setPassword(passwordEncoder.encode(member.getPassword()));
+        }
+        
+        member.setCreatedAt(new Date());
+        member.setUpdatedAt(new Date());
+
         return memberRepository.save(member);
     }
+
     
     public Member updateMember(String id, Member memberDetails) {
         Member member = memberRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Member not found"));
-        member.setName(memberDetails.getName());
-        member.setContact(memberDetails.getContact());
-        member.setEmail(memberDetails.getEmail());
-        member.setMembershipID(memberDetails.getMembershipID());
-        member.setActive(memberDetails.getActive());
-        member.setRole(memberDetails.getRole());
+        
+        // For existing members, only validate if fields are being changed to non-empty values
+        if (memberDetails.getName() != null && !memberDetails.getName().trim().isEmpty()) {
+            member.setName(memberDetails.getName());
+        }
+        
+        if (memberDetails.getEmail() != null && !memberDetails.getEmail().trim().isEmpty()) {
+            // Validate email format if provided
+            if (!isValidEmail(memberDetails.getEmail())) {
+                throw new RuntimeException("Please enter a valid email address");
+            }
+            // Check for duplicate email (excluding current member)
+            Optional<Member> existingMember = memberRepository.findByEmail(memberDetails.getEmail());
+            if (existingMember.isPresent() && !existingMember.get().getId().equals(id)) {
+                throw new RuntimeException("Email already exists");
+            }
+            member.setEmail(memberDetails.getEmail());
+        }
+        
+        if (memberDetails.getContact() != null && !memberDetails.getContact().trim().isEmpty()) {
+            // Validate phone format if provided
+            if (memberDetails.getContact().length() < 10) {
+                throw new RuntimeException("Please enter a valid phone number (at least 10 digits)");
+            }
+            member.setContact(memberDetails.getContact());
+        }
+        
+        if (memberDetails.getMembershipID() != null && !memberDetails.getMembershipID().trim().isEmpty()) {
+            // Check for duplicate membership ID (excluding current member)
+            Optional<Member> existingMember = memberRepository.findByMembershipID(memberDetails.getMembershipID());
+            if (existingMember.isPresent() && !existingMember.get().getId().equals(id)) {
+                throw new RuntimeException("Membership ID already exists");
+            }
+            member.setMembershipID(memberDetails.getMembershipID());
+        }
+        
+        if (memberDetails.getActive() != null) {
+            member.setActive(memberDetails.getActive());
+        }
+        
+        if (memberDetails.getRole() != null && !memberDetails.getRole().trim().isEmpty()) {
+            member.setRole(memberDetails.getRole());
+        }
+        
         member.setUpdatedAt(new Date());
         return memberRepository.save(member);
     }
@@ -319,5 +460,15 @@ public class MemberService {
     
     public Optional<Member> getMemberByMembershipID(String membershipID) {
         return memberRepository.findByMembershipID(membershipID);
+    }
+    
+    // Helper method for email validation
+    private boolean isValidEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        // More flexible email regex pattern
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        return email.trim().matches(emailRegex);
     }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -39,11 +39,14 @@ export default function LibrarianMembers() {
         }
     };
 
-    const filteredMembers = members.filter(member =>
-        member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.membershipID?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredMembers = useMemo(() => {
+        return members.filter(member =>
+            member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            member.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            member.contact?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            member.membershipID?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [members, searchQuery]);
 
     if (loading) return <LoadingSpinner />;
 
@@ -57,7 +60,7 @@ export default function LibrarianMembers() {
 
                     <input
                         type="text"
-                        placeholder="Search members by name, email, or membership ID..."
+                        placeholder="Search members by name, email, phone, or membership ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={styles.searchInput}

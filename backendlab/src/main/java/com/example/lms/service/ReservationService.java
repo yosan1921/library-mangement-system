@@ -3,9 +3,11 @@ package com.example.lms.service;
 import com.example.lms.model.Book;
 import com.example.lms.model.Member;
 import com.example.lms.model.Reservation;
+import com.example.lms.model.Member;
 import com.example.lms.repository.BookRepository;
 import com.example.lms.repository.MemberRepository;
 import com.example.lms.repository.ReservationRepository;
+import com.example.lms.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -61,7 +63,22 @@ public class ReservationService {
         }
         
         reservation.setStatus("APPROVED");
-        return reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        
+        // Send reservation approval notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(reservation.getMemberID());
+                Optional<Book> optBook = bookRepository.findById(reservation.getBookID());
+                if (optMember.isPresent() && optBook.isPresent()) {
+                    notificationService.createReservationApprovalNotification(savedReservation, optMember.get(), optBook.get());
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send reservation approval notification: " + e.getMessage());
+            }
+        }
+        
+        return savedReservation;
     }
     
     public Reservation notifyMember(String id) {
@@ -81,22 +98,7 @@ public class ReservationService {
         
         reservation.setNotifiedDate(LocalDate.now());
         reservation.setExpiryDate(LocalDate.now().plusDays(3)); // 3 days to pick up
-        Reservation savedReservation = reservationRepository.save(reservation);
-        
-        // Send notification if service is available
-        if (notificationService != null) {
-            try {
-                Optional<Member> optMember = memberRepository.findById(reservation.getMemberID());
-                if (optMember.isPresent()) {
-                    notificationService.createReservationReadyNotification(savedReservation, optMember.get());
-                }
-            } catch (Exception e) {
-                // Log error but don't fail the reservation
-                System.err.println("Failed to create reservation notification: " + e.getMessage());
-            }
-        }
-        
-        return savedReservation;
+        return reservationRepository.save(reservation);
     }
     
     public Reservation fulfillReservation(String id) {
@@ -116,7 +118,22 @@ public class ReservationService {
             .orElseThrow(() -> new RuntimeException("Reservation not found"));
         
         reservation.setStatus("CANCELLED");
-        return reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        
+        // Send reservation cancellation notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(reservation.getMemberID());
+                Optional<Book> optBook = bookRepository.findById(reservation.getBookID());
+                if (optMember.isPresent() && optBook.isPresent()) {
+                    notificationService.createReservationCancellationNotification(savedReservation, optMember.get(), optBook.get());
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send reservation cancellation notification: " + e.getMessage());
+            }
+        }
+        
+        return savedReservation;
     }
     
     public List<Reservation> getExpiredReservations() {

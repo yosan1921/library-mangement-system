@@ -20,9 +20,14 @@ export default function MemberCard({ member, onEdit, onDelete }) {
             {/* Details */}
             <div style={styles.details}>
                 <div style={styles.detailRow}>
+                    <span style={styles.detailIcon}>📧</span>
+                    <span style={styles.detailLabel}>Email:</span>
+                    <span style={styles.detailValue}>{member.email || 'Not provided'}</span>
+                </div>
+                <div style={styles.detailRow}>
                     <span style={styles.detailIcon}>📞</span>
-                    <span style={styles.detailLabel}>Contact:</span>
-                    <span style={styles.detailValue}>{member.contact}</span>
+                    <span style={styles.detailLabel}>Phone:</span>
+                    <span style={styles.detailValue}>{member.contact || 'Not provided'}</span>
                 </div>
                 <div style={styles.detailRow}>
                     <span style={styles.detailIcon}>👤</span>

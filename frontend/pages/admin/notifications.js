@@ -104,12 +104,38 @@ export default function NotificationsManagement() {
 
         try {
             const result = await sendBulkNotifications(selectedNotifications);
+<<<<<<< HEAD
             alert(`Sent: ${result.sent}, Failed: ${result.failed}`);
+=======
+
+            let message = `📊 Bulk Send Results:\n\n`;
+            message += `✅ Sent: ${result.sent}\n`;
+            message += `❌ Failed: ${result.failed}\n`;
+            message += `📝 Total: ${result.total}\n\n`;
+
+            if (result.failed > 0) {
+                message += `⚠️ Some notifications failed to send.\n\n`;
+                message += `Common reasons:\n`;
+                message += `• Member doesn't have an email address\n`;
+                message += `• Email address is invalid\n`;
+                message += `• Email notifications are disabled\n`;
+                message += `• SMTP connection issues\n\n`;
+                message += `💡 Tip: Check the "All Notifications" list to see which ones failed and view error details.`;
+            } else {
+                message += `🎉 All notifications sent successfully!`;
+            }
+
+            alert(message);
+>>>>>>> ce9e8d1 (final lms)
             setSelectedNotifications([]);
             loadData();
         } catch (error) {
             console.error('Error sending bulk notifications:', error);
+<<<<<<< HEAD
             alert('Failed to send bulk notifications');
+=======
+            alert('Failed to send bulk notifications: ' + (error.message || 'Unknown error'));
+>>>>>>> ce9e8d1 (final lms)
         }
     };
 
@@ -404,7 +430,11 @@ export default function NotificationsManagement() {
                                         onChange={() => toggleSelection(notification.id)}
                                     />
                                 </td>
+<<<<<<< HEAD
                                 <td style={styles.td}>{notification.memberName}</td>
+=======
+                                <td style={styles.td}>{notification.memberName || 'Unknown'}</td>
+>>>>>>> ce9e8d1 (final lms)
                                 <td style={styles.td}>
                                     <span style={getCategoryBadge(notification.category)}>
                                         {notification.category}
@@ -413,9 +443,23 @@ export default function NotificationsManagement() {
                                 <td style={styles.td}>{notification.subject}</td>
                                 <td style={styles.td}>{notification.type}</td>
                                 <td style={styles.td}>
+<<<<<<< HEAD
                                     <span style={getStatusBadge(notification.status)}>
                                         {notification.status}
                                     </span>
+=======
+                                    <span
+                                        style={getStatusBadge(notification.status)}
+                                        title={notification.status === 'FAILED' && notification.errorMessage ? `Error: ${notification.errorMessage}` : ''}
+                                    >
+                                        {notification.status}
+                                    </span>
+                                    {notification.status === 'FAILED' && notification.errorMessage && (
+                                        <div style={styles.errorHint}>
+                                            ⚠️ Hover to see error
+                                        </div>
+                                    )}
+>>>>>>> ce9e8d1 (final lms)
                                 </td>
                                 <td style={styles.td}>{formatDateTime(notification.createdAt)}</td>
                                 <td style={styles.td}>
@@ -427,6 +471,25 @@ export default function NotificationsManagement() {
                                             Send
                                         </button>
                                     )}
+<<<<<<< HEAD
+=======
+                                    {notification.status === 'FAILED' && (
+                                        <>
+                                            <button
+                                                style={{ ...styles.smallButton, ...styles.warningButton }}
+                                                onClick={() => alert(`❌ Error Details:\n\n${notification.errorMessage || 'No error message available'}\n\n💡 Common fixes:\n• Check member has valid email\n• Verify email settings in System Settings\n• Ensure email notifications are enabled`)}
+                                            >
+                                                View Error
+                                            </button>
+                                            <button
+                                                style={{ ...styles.smallButton, ...styles.successButton, marginLeft: '0.5rem' }}
+                                                onClick={() => handleSendNotification(notification.id)}
+                                            >
+                                                Retry
+                                            </button>
+                                        </>
+                                    )}
+>>>>>>> ce9e8d1 (final lms)
                                     <button
                                         style={{ ...styles.smallButton, ...styles.dangerButton, marginLeft: '0.5rem' }}
                                         onClick={() => handleDeleteNotification(notification.id)}
@@ -444,7 +507,10 @@ export default function NotificationsManagement() {
             </div>
         </div>
     );
+<<<<<<< HEAD
 
+=======
+>>>>>>> ce9e8d1 (final lms)
     const renderCreateTab = () => (
         <div style={styles.tabContent}>
             <h2 style={styles.sectionTitle}>Create Custom Notification</h2>
@@ -460,7 +526,11 @@ export default function NotificationsManagement() {
                         <option value="">Choose a member...</option>
                         {members.map(member => (
                             <option key={member.id} value={member.id}>
+<<<<<<< HEAD
                                 {member.name} ({member.email})
+=======
+                                {member.name} ({member.email || 'No email'})
+>>>>>>> ce9e8d1 (final lms)
                             </option>
                         ))}
                     </select>
@@ -807,4 +877,14 @@ const styles = {
         borderRadius: '8px',
         borderLeft: '4px solid #3498db',
     },
+<<<<<<< HEAD
 };
+=======
+    errorHint: {
+        fontSize: '0.7rem',
+        color: '#e74c3c',
+        marginTop: '0.25rem',
+        fontStyle: 'italic',
+    },
+};
+>>>>>>> ce9e8d1 (final lms)

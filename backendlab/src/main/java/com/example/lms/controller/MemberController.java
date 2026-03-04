@@ -140,8 +140,17 @@ public class MemberController {
     }
     
     @PostMapping
-    public Member addMember(@RequestBody Member member) {
-        return memberService.addMember(member);
+    public ResponseEntity<?> addMember(@RequestBody Member member) {
+        try {
+            Member savedMember = memberService.addMember(member);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedMember);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "An unexpected error occurred: " + e.getMessage()));
+        }
     }
     
     @PutMapping("/{id}")

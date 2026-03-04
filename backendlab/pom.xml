@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    Maven Project Object Model (POM) for Library Management System
+    This file defines the project structure, dependencies, and build configuration
+    for a Spring Boot application with MongoDB integration
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- Maven model version - always 4.0.0 for Maven 2.x and 3.x -->
     <modelVersion>4.0.0</modelVersion>
     
+    <!-- 
+        Parent POM configuration - inherits from Spring Boot starter parent
+        This provides default configurations for Spring Boot applications
+    -->
     <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -12,27 +22,44 @@
     <relativePath/>
 </parent>
 
-    
+    <!-- 
+        Project identification coordinates (GAV - Group, Artifact, Version)
+        These uniquely identify this project in the Maven ecosystem
+    -->
     <groupId>com.example</groupId>
     <artifactId>lms</artifactId>
     <version>1.0.0</version>
     <name>Library Management System</name>
     <description>Library Management System with Spring Boot and MongoDB</description>
     
+    <!-- 
+        Project properties - define Java version and compiler settings
+        Using Java 23 for modern language features and performance
+    -->
     <properties>
         <java.version>23</java.version>
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
     </properties>
 
+    <!-- 
+        Project Dependencies - External libraries required for the application
+        Each dependency provides specific functionality for the LMS
+    -->
     <dependencies>
-        <!-- Spring Boot Web -->
+        <!-- 
+            Spring Boot Web Starter - Provides web application capabilities
+            Includes embedded Tomcat server, Spring MVC, and REST support
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring Boot Data MongoDB -->
+        <!-- 
+            Spring Boot Data MongoDB Starter - MongoDB integration
+            Provides MongoDB repositories, templates, and auto-configuration
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
@@ -40,20 +67,39 @@
 
 
 
-        <!-- Spring Security (for BCryptPasswordEncoder) -->
+        <!-- 
+            Spring Security Crypto - Password encryption utilities
+            Used for BCrypt password hashing for secure user authentication
+        -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
-        <!-- JavaMail for Email Notifications -->
+        <!-- 
+            Spring Boot Mail Starter - Email notification support
+            Enables sending email notifications for library events
+        -->
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- Spring Boot Test -->
+        <!-- 
+            Twilio SDK - SMS notification service integration
+            Allows sending SMS notifications for overdue books, reservations, etc.
+        -->
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>9.14.1</version>
+        </dependency>
+
+        <!-- 
+            Spring Boot Test Starter - Testing framework support
+            Includes JUnit, Mockito, and Spring Test for unit and integration testing
+            Scope is 'test' so it's only available during testing phase
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -61,12 +107,24 @@
         </dependency>
     </dependencies>
     
+    <!-- 
+        Build Configuration - Defines how the project should be compiled and packaged
+        Includes plugins for building, compiling, and running the application
+    -->
     <build>
         <plugins>
+            <!-- 
+                Spring Boot Maven Plugin - Provides Spring Boot specific build tasks
+                Enables creating executable JAR files and running the application via Maven
+            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- 
+                Maven Compiler Plugin - Controls Java compilation process
+                Configured to use Java 23 for both source and target compatibility
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
