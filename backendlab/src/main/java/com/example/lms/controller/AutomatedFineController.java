@@ -78,7 +78,7 @@ public class AutomatedFineController {
     @GetMapping("/summary")
     public ResponseEntity<?> getOverdueSummary() {
         try {
-            //AutomatedFineService.OverdueStatistics stats = automatedFineService.getOverdueStatistics();
+            AutomatedFineService.OverdueStatistics stats = automatedFineService.getOverdueStatistics();
             
             return ResponseEntity.ok(Map.of(
                 "totalOverdueBooks", stats.totalOverdueBooks,
