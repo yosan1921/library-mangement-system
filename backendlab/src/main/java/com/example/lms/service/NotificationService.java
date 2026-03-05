@@ -72,7 +72,7 @@ public class NotificationService {
         Notification notification = optNotification.get();
         SystemSettings settings = getSystemSettings();
         
-        boolean success = false;
+       // boolean success = false;
         String errorMsg = null;
         
         try {
