@@ -180,7 +180,7 @@ public class NotificationService {
         }
         
         // Implement different SMS providers
-       // switch (smsProvider.toUpperCase()) {
+        switch (smsProvider.toUpperCase()) {
             case "TWILIO":
                 sendTwilioSMS(notification, settings);
                 break;
