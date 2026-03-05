@@ -104,7 +104,7 @@ public class Member {
      * Timestamp when the member account was last updated
      * Updated whenever member information is modified
      */
-    private Date updatedAt;
+    private Date ;
 
     /**
      * Default constructor for MongoDB deserialization
