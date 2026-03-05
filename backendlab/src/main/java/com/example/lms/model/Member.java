@@ -83,7 +83,7 @@ public class Member {
      * - true: Member can log in and use library services
      * - false: Account is deactivated (soft delete)
      */
-    private Boolean ;
+    private Boolean active;
     
     /**
      * Role of the member in the system
