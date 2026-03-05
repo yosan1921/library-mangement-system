@@ -78,7 +78,7 @@ public class AutomatedFineController {
     @GetMapping("/summary")
     public ResponseEntity<?> getOverdueSummary() {
         try {
-            AutomatedFineService.OverdueStatistics stats = automatedFineService.getOverdueStatistics();
+            //AutomatedFineService.OverdueStatistics stats = automatedFineService.getOverdueStatistics();
             
             return ResponseEntity.ok(Map.of(
                 "totalOverdueBooks", stats.totalOverdueBooks,
@@ -87,7 +87,7 @@ public class AutomatedFineController {
                 "criticalOverdue", stats.overdueOver30Days // Books overdue more than 30 days
             ));
         } catch (Exception e) {
-           // return ResponseEntity.internalServerError().body(Map.of(
+            return ResponseEntity.internalServerError().body(Map.of(
                 "error", "Failed to get overdue summary",
                 "message", e.getMessage()
             ));
