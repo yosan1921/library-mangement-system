@@ -12,7 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/reservations")
 @CrossOrigin(origins = "*")
-//public class ReservationController {
+public class ReservationController {
     
     @Autowired
     private ReservationService reservationService;
