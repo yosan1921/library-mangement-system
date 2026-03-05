@@ -12,7 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/fines")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class FineController {
     
     @Autowired
