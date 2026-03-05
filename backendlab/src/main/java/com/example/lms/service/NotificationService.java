@@ -184,7 +184,7 @@ public class NotificationService {
             case "TWILIO":
                 sendTwilioSMS(notification, settings);
                 break;
-            case "AWS_SNS":
+           // case "AWS_SNS":
                 sendAWSSMS(notification, settings);
                 break;
             case "NEXMO":
