@@ -109,7 +109,7 @@ public class NotificationService {
                 }
             }
             
-            //if (success) {
+            if (success) {
                 notification.setStatus("SENT");
                 notification.setSent(true);
                 notification.setSentAt(LocalDateTime.now());
