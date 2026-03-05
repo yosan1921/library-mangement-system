@@ -212,7 +212,7 @@ public class NotificationService {
             String authToken = settings.getSmsApiKey();    // Twilio Auth Token
             String fromNumber = settings.getSmsFromNumber(); // Twilio phone number
             
-            if (accountSid == null || authToken == null || fromNumber == null) {
+            if ( == null || authToken == null || fromNumber == null) {
                 throw new Exception("Twilio configuration incomplete");
             }
             
