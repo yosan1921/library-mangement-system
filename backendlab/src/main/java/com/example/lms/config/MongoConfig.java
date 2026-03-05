@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * - Graceful error handling for connection failures
  * - Auditing support for automatic timestamp fields
  */
-//@Configuration // Marks this class as a source of bean definitions
+@Configuration // Marks this class as a source of bean definitions
 @EnableMongoAuditing // Enables automatic auditing of MongoDB entities
 public class MongoConfig extends AbstractMongoClientConfiguration {
 
