@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 // Java collections and optional classes
 import java.util.Optional;
-//import java.util.List;
+import java.util.List;
 
 /**
  * LibrarianRepository Interface - Data Access Layer for Librarian entities
