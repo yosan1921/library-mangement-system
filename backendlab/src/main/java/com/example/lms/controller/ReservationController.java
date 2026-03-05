@@ -1,7 +1,7 @@
 package com.example.lms.controller;
 
 import com.example.lms.model.Reservation;
-import com.example.lms.service.ReservationService;
+//import com.example.lms.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
