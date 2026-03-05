@@ -178,7 +178,7 @@ public class Member {
      * Gets the encrypted password
      * @return The BCrypt hashed password
      */
-    //public String getPassword() { return password; }
+    public String getPassword() { return password; }
     
     /**
      * Sets the encrypted password
