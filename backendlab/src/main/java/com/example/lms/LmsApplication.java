@@ -48,7 +48,7 @@ public class LmsApplication {
      * 
      * @param args Command line arguments passed to the application
      */
-    public static void main(String[] args) {
+   // public static void main(String[] args) {
         try {
             // Start the Spring Boot application and get the application context
             ConfigurableApplicationContext context = SpringApplication.run(LmsApplication.class, args);
