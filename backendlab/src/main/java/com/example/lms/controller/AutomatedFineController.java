@@ -27,7 +27,7 @@ public class AutomatedFineController {
      * Manually trigger overdue book processing
      * Useful for administrators who want to process overdue books immediately
      */
-    //@PostMapping("/process-overdue")
+    @PostMapping("/process-overdue")
     public ResponseEntity<?> processOverdueBooks() {
         try {
             AutomatedFineService.ProcessingResult result = automatedFineService.processOverdueBooksManually();
