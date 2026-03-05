@@ -277,7 +277,7 @@ public class NotificationService {
             }
         }
         
-        Map<String, Object> result = new HashMap<>();
+        Map<, Object> result = new HashMap<>();
         result.put("sent", sent);
         result.put("failed", failed);
         result.put("total", notificationIds.size());
