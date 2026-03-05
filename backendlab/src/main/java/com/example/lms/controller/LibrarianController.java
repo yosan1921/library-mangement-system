@@ -57,7 +57,7 @@ public class LibrarianController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Librarian not found");
     }
 
-    //@GetMapping
+    @GetMapping
     public ResponseEntity<List<Librarian>> getAllLibrarians() {
         return ResponseEntity.ok(librarianService.getAllLibrarians());
     }
