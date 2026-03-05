@@ -14,7 +14,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class ReservationController {
     
-   // @Autowired
+    @Autowired
     private ReservationService reservationService;
     
     @GetMapping
