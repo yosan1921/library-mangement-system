@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class LmsApplication {
     
     // Logger instance for application-level logging
-   // private static final Logger logger = LoggerFactory.getLogger(LmsApplication.class);
+    private static final Logger logger = LoggerFactory.getLogger(LmsApplication.class);
     
     /**
      * Main method - Application entry point
