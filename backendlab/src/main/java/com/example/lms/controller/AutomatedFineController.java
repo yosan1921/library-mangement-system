@@ -32,7 +32,7 @@ public class AutomatedFineController {
         try {
             AutomatedFineService.ProcessingResult result = automatedFineService.processOverdueBooksManually();
             
-           // if (result.success) {
+            if (result.success) {
                 return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Overdue processing completed successfully",
