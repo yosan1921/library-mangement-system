@@ -286,7 +286,7 @@ public class NotificationService {
     
     // Create due date reminder notification
     public Notification createDueDateReminder(BorrowRecord borrow, Member member) {
-        Notification notification = new Notification();
+        //Notification notification = new Notification();
         notification.setMemberId(member.getId());
         notification.setMemberName(member.getName());
         notification.setMemberEmail(member.getEmail());
