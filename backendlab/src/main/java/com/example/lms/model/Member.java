@@ -113,7 +113,7 @@ public class Member {
      * - Assigns default role as "member"
      * - Sets creation and update timestamps to current time
      */
-    public () {
+    public Member() {
         this.active = true;           // New members are active by default
         this.role = "member";         // Default role is regular member
         this.createdAt = new Date();  // Set creation timestamp
