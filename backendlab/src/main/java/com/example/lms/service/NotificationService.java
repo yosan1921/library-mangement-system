@@ -306,7 +306,7 @@ public class NotificationService {
         }
         
         // Get book title from book repository
-        String bookTitle = "Unknown Book";
+       // String bookTitle = "Unknown Book";
         try {
             Optional<Book> optBook = bookRepository.findById(borrow.getBookID());
             if (optBook.isPresent()) {
