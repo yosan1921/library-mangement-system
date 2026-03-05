@@ -16,7 +16,7 @@ import java.util.Map;
  * 3. Administrative fine management
  */
 @RestController
-@RequestMapping("/api/automated-fines")
+//@RequestMapping("/api/automated-fines")
 @CrossOrigin(origins = "*")
 public class AutomatedFineController {
     
