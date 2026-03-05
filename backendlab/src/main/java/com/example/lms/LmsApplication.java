@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 @SpringBootApplication // Enables auto-configuration, component scanning, and configuration properties
 @EnableMongoRepositories(basePackages = "com.example.lms.repository") // Scans for MongoDB repositories
-@EnableScheduling // Enables scheduled method execution for background tasks
+//@EnableScheduling // Enables scheduled method execution for background tasks
 public class LmsApplication {
     
     // Logger instance for application-level logging
