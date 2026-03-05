@@ -220,7 +220,7 @@ public class Member {
      * Sets the active status of the member
      * @param active true to activate member, false to deactivate
      */
-    public void setActive(Boolean active) { this.active = active; }
+   // public void setActive(Boolean active) { this.active = active; }
     
     /**
      * Gets the role of the member
