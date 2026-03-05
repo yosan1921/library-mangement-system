@@ -40,7 +40,7 @@ public class Member {
      * Full name of the member
      * Used for display purposes and identification
      */
-    private String name;
+    //private String name;
     
     /**
      * Unique username for member authentication
