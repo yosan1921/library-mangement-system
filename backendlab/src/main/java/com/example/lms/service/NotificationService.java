@@ -93,7 +93,7 @@ public class NotificationService {
                 }
             }
             
-            if ("SMS".equals(notification.getType()) || "BOTH".equals(notification.getType())) {
+            //if ("SMS".equals(notification.getType()) || "BOTH".equals(notification.getType())) {
                 // SMS temporarily disabled - skip SMS sending for now
                 System.out.println("=== SMS SKIPPED (Not Configured) ===");
                 System.out.println("To: " + (notification.getMemberContact() != null ? notification.getMemberContact() : "No phone"));
