@@ -87,7 +87,7 @@ public class AutomatedFineController {
                 "criticalOverdue", stats.overdueOver30Days // Books overdue more than 30 days
             ));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
+           // return ResponseEntity.internalServerError().body(Map.of(
                 "error", "Failed to get overdue summary",
                 "message", e.getMessage()
             ));
