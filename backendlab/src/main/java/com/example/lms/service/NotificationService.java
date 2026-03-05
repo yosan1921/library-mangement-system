@@ -141,7 +141,7 @@ public class NotificationService {
             throw new Exception("Member email is not available");
         }
         
-        //Properties props = new Properties();
+        Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", settings.getEmailHost() != null ? settings.getEmailHost() : "smtp.gmail.com");
