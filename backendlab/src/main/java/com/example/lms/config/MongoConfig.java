@@ -68,7 +68,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
      */
     @Override
     @Bean
-    //public MongoClient mongoClient() {
+    public MongoClient mongoClient() {
         try {
             // Parse the MongoDB connection string from configuration
             ConnectionString connectionString = new ConnectionString(mongoUri);
