@@ -256,5 +256,5 @@ public class Member {
      * Sets the last update timestamp
      * @param updatedAt Date when the member account was last updated
      */
-    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
+    //public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
 }
