@@ -360,7 +360,7 @@ public class NotificationService {
             System.err.println("Error fetching book title: " + e.getMessage());
         }
         
-        notification.setSubject("Overdue Book Notice");
+        //notification.setSubject("Overdue Book Notice");
         notification.setMessage(String.format(
             "Dear %s,\n\nYour borrowed book '%s' is now overdue. It was due on %s.\n\nPlease return it immediately. Late fees may apply.\n\nThank you,\n%s",
             member.getName(),
