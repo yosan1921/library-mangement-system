@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-//@RestController
+@RestController
 @RequestMapping("/api/fines")
 @CrossOrigin(origins = "*")
 public class FineController {
