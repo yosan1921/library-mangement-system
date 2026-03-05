@@ -72,7 +72,7 @@ public class Book {
      * Default constructor required by MongoDB for object deserialization
      * Spring Data MongoDB uses this constructor when retrieving documents from the database
      */
-    //public Book() {
+    public Book() {
     }
 
     // =============================================================================
