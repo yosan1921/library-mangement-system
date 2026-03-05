@@ -319,7 +319,7 @@ public class NotificationService {
         notification.setSubject("Book Due Date Reminder");
         notification.setMessage(String.format(
             "Dear %s,\n\nThis is a reminder that your borrowed book '%s' is due on %s.\n\nPlease return it on time to avoid fines.\n\nThank you,\n%s",
-            .getName(),
+            member.getName(),
             bookTitle,
             borrow.getDueDate(),
             settings.getLibraryName()
