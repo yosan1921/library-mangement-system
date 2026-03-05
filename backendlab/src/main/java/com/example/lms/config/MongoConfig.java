@@ -89,7 +89,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
                     .build();
             
             // Create and return the configured MongoDB client
-           // return MongoClients.create(settings);
+            return MongoClients.create(settings);
             
         } catch (Exception e) {
             // Log connection error but allow application to continue
