@@ -92,7 +92,7 @@ public class Member {
      * - "librarian": Library staff with management privileges
      * - "admin": System administrator with full access
      */
-    private String role;
+    private String ;
     
     /**
      * Timestamp when the member account was created
