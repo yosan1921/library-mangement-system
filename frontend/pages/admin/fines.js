@@ -202,14 +202,7 @@ export default function FinesManagement() {
     };
 
     const handleDeleteFine = async (fineID) => {
-        const fine = currentList.find(f => f.id === fineID);
-        let confirmMessage = 'Are you sure you want to delete this fine? This action cannot be undone.';
-
-        if (fine && fine.amountPaid > 0) {
-            confirmMessage = `This fine has payments recorded (${formatCurrency(fine.amountPaid)}). Are you sure you want to delete it? This action cannot be undone.`;
-        }
-
-        if (!window.confirm(confirmMessage)) {
+        if (!window.confirm('Are you sure you want to delete this fine? This action cannot be undone.')) {
             return;
         }
 
@@ -501,21 +494,24 @@ export default function FinesManagement() {
                                                                         </button>
                                                                     </>
                                                                 )}
-                                                                {/* Edit and Delete buttons available for ALL statuses */}
-                                                                <button
-                                                                    style={styles.btnEditSmall}
-                                                                    onClick={() => openEditModal(fine)}
-                                                                    title="Edit Fine"
-                                                                >
-                                                                    ✏️ Edit
-                                                                </button>
-                                                                <button
-                                                                    style={styles.btnDeleteSmall}
-                                                                    onClick={() => handleDeleteFine(fine.id)}
-                                                                    title="Delete Fine"
-                                                                >
-                                                                    🗑️ Delete
-                                                                </button>
+                                                                {(fine.status === 'UNPAID' || fine.status === 'WAIVED') && (
+                                                                    <>
+                                                                        <button
+                                                                            style={styles.btnEditSmall}
+                                                                            onClick={() => openEditModal(fine)}
+                                                                            title="Edit Fine"
+                                                                        >
+                                                                            ✏️ Edit
+                                                                        </button>
+                                                                        <button
+                                                                            style={styles.btnDeleteSmall}
+                                                                            onClick={() => handleDeleteFine(fine.id)}
+                                                                            title="Delete Fine"
+                                                                        >
+                                                                            🗑️ Delete
+                                                                        </button>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -753,14 +749,14 @@ export default function FinesManagement() {
                                         value={editAmount}
                                         onChange={(e) => setEditAmount(e.target.value)}
                                         step="0.01"
-                                        min="0.01"
+                                        min={editingFine.amountPaid || "0.01"}
                                         placeholder="0.00"
                                         disabled={processingEdit}
                                     />
                                 </div>
                                 {editingFine.amountPaid > 0 && (
                                     <small style={{ color: '#7f8c8d', fontSize: '0.8rem' }}>
-                                        Note: Amount paid: {formatCurrency(editingFine.amountPaid)}. Status will be updated automatically.
+                                        Minimum amount: {formatCurrency(editingFine.amountPaid)} (amount already paid)
                                     </small>
                                 )}
                             </div>

@@ -436,22 +436,26 @@ public class FineService {
     public Fine updateFine(String fineID, Double amount, String reason) {
         Fine fine = getFineById(fineID);
         
+        // Only allow editing if fine hasn't been paid or waived
+        if ("PAID".equals(fine.getStatus()) || "WAIVED".equals(fine.getStatus())) {
+            throw new RuntimeException("Cannot edit a fine that has been paid or waived");
+        }
+        
+        // If there are payments, ensure new amount is not less than amount paid
+        Double amountPaid = fine.getAmountPaid() != null ? fine.getAmountPaid() : 0.0;
+        if (amount < amountPaid) {
+            throw new RuntimeException("New fine amount cannot be less than amount already paid: " + amountPaid);
+        }
+        
         fine.setAmount(amount);
         fine.setReason(reason);
         
         // Update status based on new amount and existing payments
-        Double amountPaid = fine.getAmountPaid() != null ? fine.getAmountPaid() : 0.0;
         if (amountPaid >= amount) {
             fine.setStatus("PAID");
-            if (fine.getPaidDate() == null) {
-                fine.setPaidDate(LocalDate.now());
-            }
+            fine.setPaidDate(LocalDate.now());
         } else if (amountPaid > 0) {
             fine.setStatus("PARTIALLY_PAID");
-            fine.setPaidDate(null); // Clear paid date if no longer fully paid
-        } else {
-            fine.setStatus("UNPAID");
-            fine.setPaidDate(null);
         }
         
         return fineRepository.save(fine);
@@ -459,6 +463,12 @@ public class FineService {
     
     public void deleteFine(String fineID) {
         Fine fine = getFineById(fineID);
+        
+        // Only allow deletion if fine hasn't been paid
+        if ("PAID".equals(fine.getStatus()) || "PARTIALLY_PAID".equals(fine.getStatus())) {
+            throw new RuntimeException("Cannot delete a fine that has payments recorded");
+        }
+        
         fineRepository.deleteById(fineID);
     }
 }
