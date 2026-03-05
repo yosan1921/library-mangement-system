@@ -187,7 +187,7 @@ public class NotificationService {
            // case "AWS_SNS":
                 sendAWSSMS(notification, settings);
                 break;
-            case "NEXMO":
+            //case "NEXMO":
                 sendNexmoSMS(notification, settings);
                 break;
             default:
