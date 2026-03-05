@@ -1,7 +1,7 @@
 package com.example.lms.config;
 
 // MongoDB Java driver imports for connection and client configuration
-//import com.mongodb.ConnectionString;
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
