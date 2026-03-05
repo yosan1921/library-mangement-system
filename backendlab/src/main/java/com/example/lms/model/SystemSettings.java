@@ -75,6 +75,20 @@ public class SystemSettings {
     private Double finePerDay;
     
     /**
+     * Fine amount charged for damaged books
+     * Used when a book is returned in damaged condition
+     * Default: $10.00 per damaged book
+     */
+    private Double damagedBookFine;
+    
+    /**
+     * Fine amount charged for lost books
+     * Used when a member reports a book as lost or fails to return it
+     * Default: $25.00 per lost book (replacement cost)
+     */
+    private Double lostBookFine;
+    
+    /**
      * Maximum number of times a book can be renewed
      * Allows members to extend borrowing period if no reservations exist
      * Default: 2 renewals maximum
@@ -236,6 +250,8 @@ public class SystemSettings {
         this.maxBooksPerMember = 5;           // Reasonable limit for most libraries
         this.borrowDurationDays = 14;         // Standard 2-week borrowing period
         this.finePerDay = 1.0;               // $1 per day fine (adjust for local currency)
+        this.damagedBookFine = 10.0;         // $10 fine for damaged books
+        this.lostBookFine = 25.0;            // $25 fine for lost books (replacement cost)
         this.maxRenewals = 2;                // Allow 2 renewals (up to 6 weeks total)
         this.reservationExpiryDays = 3;      // 3-day hold period for reservations
         
@@ -301,6 +317,30 @@ public class SystemSettings {
      * @param finePerDay Fine amount per day
      */
     public void setFinePerDay(Double finePerDay) { this.finePerDay = finePerDay; }
+    
+    /**
+     * Gets the fine amount for damaged books
+     * @return Fine amount for damaged books
+     */
+    public Double getDamagedBookFine() { return damagedBookFine; }
+    
+    /**
+     * Sets the fine amount for damaged books
+     * @param damagedBookFine Fine amount for damaged books
+     */
+    public void setDamagedBookFine(Double damagedBookFine) { this.damagedBookFine = damagedBookFine; }
+    
+    /**
+     * Gets the fine amount for lost books
+     * @return Fine amount for lost books
+     */
+    public Double getLostBookFine() { return lostBookFine; }
+    
+    /**
+     * Sets the fine amount for lost books
+     * @param lostBookFine Fine amount for lost books
+     */
+    public void setLostBookFine(Double lostBookFine) { this.lostBookFine = lostBookFine; }
     
     /**
      * Gets the maximum number of renewals allowed

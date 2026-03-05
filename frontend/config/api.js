@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 export const API_ENDPOINTS = {
     // Auth
@@ -36,6 +36,16 @@ export const API_ENDPOINTS = {
         BASE: `${API_BASE_URL}/members`,
         BY_ID: (id) => `${API_BASE_URL}/members/${id}`,
         ACTIVE: `${API_BASE_URL}/members/active`,
+        REGISTER: `${API_BASE_URL}/members/register`,
+        AUTHENTICATE: `${API_BASE_URL}/members/authenticate`,
+        PROFILE: (id) => `${API_BASE_URL}/members/${id}/profile`,
+        DASHBOARD: (id) => `${API_BASE_URL}/members/${id}/dashboard`,
+        BORROWS: (id) => `${API_BASE_URL}/members/${id}/borrows`,
+        ACTIVE_BORROWS: (id) => `${API_BASE_URL}/members/${id}/borrows/active`,
+        FINES: (id) => `${API_BASE_URL}/members/${id}/fines`,
+        OUTSTANDING_FINES: (id) => `${API_BASE_URL}/members/${id}/fines/outstanding`,
+        RESERVATIONS: (id) => `${API_BASE_URL}/members/${id}/reservations`,
+        NOTIFICATIONS: (id) => `${API_BASE_URL}/members/${id}/notifications`,
     },
 
     // Borrows

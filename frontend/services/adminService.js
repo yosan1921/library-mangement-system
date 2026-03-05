@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8081/api/admins';
+const API_URL = 'http://localhost:8080/api/admins';
 
 export const getAllAdmins = async () => {
     const response = await axios.get(API_URL);

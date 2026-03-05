@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8081/api/reports';
+const API_URL = 'http://localhost:8080/api/reports';
 
 // Book Reports
 export const getMostBorrowedBooks = async (limit = 10) => {

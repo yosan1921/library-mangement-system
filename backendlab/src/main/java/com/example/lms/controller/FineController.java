@@ -58,6 +58,35 @@ public class FineController {
         }
     }
     
+    @PostMapping("/calculate-auto/{borrowRecordID}")
+    public ResponseEntity<Fine> calculateAutomaticFine(@PathVariable String borrowRecordID) {
+        try {
+            return ResponseEntity.ok(fineService.calculateAndCreateAutomaticFine(borrowRecordID));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/lost-book/{borrowRecordID}")
+    public ResponseEntity<Fine> createLostBookFine(@PathVariable String borrowRecordID, @RequestBody Map<String, String> request) {
+        try {
+            String notes = request.get("notes");
+            return ResponseEntity.ok(fineService.createLostBookFine(borrowRecordID, notes));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/damaged-book/{borrowRecordID}")
+    public ResponseEntity<Fine> createDamagedBookFine(@PathVariable String borrowRecordID, @RequestBody Map<String, String> request) {
+        try {
+            String damageDescription = request.get("damageDescription");
+            return ResponseEntity.ok(fineService.createDamagedBookFine(borrowRecordID, damageDescription));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
     @PostMapping("/manual")
     public ResponseEntity<Fine> createManualFine(@RequestBody Map<String, Object> request) {
         try {

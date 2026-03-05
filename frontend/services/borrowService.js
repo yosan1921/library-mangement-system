@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8081/api/borrow';
-const RESERVATION_URL = 'http://localhost:8081/api/reservations';
+const API_URL = 'http://localhost:8080/api/borrow';
+const RESERVATION_URL = 'http://localhost:8080/api/reservations';
 
 export const issueBook = async (memberID, bookID) => {
     const response = await axios.post(`${API_URL}/issue`, { memberID, bookID });

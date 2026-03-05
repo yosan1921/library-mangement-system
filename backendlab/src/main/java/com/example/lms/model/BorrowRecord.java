@@ -92,12 +92,34 @@ public class BorrowRecord {
      * - "APPROVED": Librarian approved the request, book is issued to member
      * - "REJECTED": Librarian rejected the borrowing request
      * - "RETURNED": Member has returned the book, transaction is complete
+     * - "LOST": Book has been reported as lost by the member
+     * - "DAMAGED": Book was returned in damaged condition
      * 
      * Status transitions:
      * PENDING → APPROVED (librarian approves) → RETURNED (member returns book)
      * PENDING → REJECTED (librarian rejects request)
+     * APPROVED → LOST (member reports book as lost)
+     * APPROVED → DAMAGED (book returned damaged)
      */
-    private String status; // PENDING, APPROVED, REJECTED, RETURNED
+    private String status; // PENDING, APPROVED, REJECTED, RETURNED, LOST, DAMAGED
+    
+    /**
+     * Condition of the book when returned
+     * 
+     * Possible values:
+     * - "GOOD": Book returned in good condition
+     * - "DAMAGED": Book returned with damage (torn pages, water damage, etc.)
+     * - "LOST": Book was not returned and is considered lost
+     * 
+     * Used for determining if additional fines should be applied
+     */
+    private String bookCondition; // GOOD, DAMAGED, LOST
+    
+    /**
+     * Notes about the book condition or return circumstances
+     * Used to document any issues with the book or special circumstances
+     */
+    private String conditionNotes;
 
     /**
      * Default constructor required by MongoDB for object deserialization
@@ -204,7 +226,31 @@ public class BorrowRecord {
     
     /**
      * Sets the current status of the borrowing transaction
-     * @param status The status (PENDING, APPROVED, REJECTED, or RETURNED)
+     * @param status The status (PENDING, APPROVED, REJECTED, RETURNED, LOST, or DAMAGED)
      */
     public void setStatus(String status) { this.status = status; }
+    
+    /**
+     * Gets the condition of the book when returned
+     * @return The book condition (GOOD, DAMAGED, or LOST)
+     */
+    public String getBookCondition() { return bookCondition; }
+    
+    /**
+     * Sets the condition of the book when returned
+     * @param bookCondition The book condition (GOOD, DAMAGED, or LOST)
+     */
+    public void setBookCondition(String bookCondition) { this.bookCondition = bookCondition; }
+    
+    /**
+     * Gets the notes about book condition or return circumstances
+     * @return Condition notes
+     */
+    public String getConditionNotes() { return conditionNotes; }
+    
+    /**
+     * Sets the notes about book condition or return circumstances
+     * @param conditionNotes Condition notes
+     */
+    public void setConditionNotes(String conditionNotes) { this.conditionNotes = conditionNotes; }
 }

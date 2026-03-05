@@ -17,11 +17,11 @@ export default function LibrarianFines() {
         setLoading(true);
         setMessage(''); // Clear previous messages at start
         try {
-            let url = 'http://localhost:8081/api/fines';
+            let url = 'http://localhost:8080/api/fines';
             if (filter === 'unpaid') {
-                url = 'http://localhost:8081/api/fines/unpaid';
+                url = 'http://localhost:8080/api/fines/unpaid';
             } else if (filter === 'paid') {
-                url = 'http://localhost:8081/api/fines/paid';
+                url = 'http://localhost:8080/api/fines/paid';
             }
 
             console.log('Fetching fines from:', url);
@@ -47,7 +47,7 @@ export default function LibrarianFines() {
         } catch (error) {
             console.error('Error loading fines:', error);
             console.error('Error details:', error.message);
-            const errorMsg = 'Error loading fines. Please check if the backend is running on port 8081.';
+            const errorMsg = 'Error loading fines. Please check if the backend is running on port 8080.';
             setMessage(errorMsg);
             setFines([]);
 
@@ -63,7 +63,7 @@ export default function LibrarianFines() {
 
     const handlePayFine = async (fineId) => {
         try {
-            const response = await fetch(`http://localhost:8081/api/fines/${fineId}/pay`, {
+            const response = await fetch(`http://localhost:8080/api/fines/${fineId}/pay`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -85,7 +85,7 @@ export default function LibrarianFines() {
         if (!confirm('Are you sure you want to waive this fine?')) return;
 
         try {
-            const response = await fetch(`http://localhost:8081/api/fines/${fineId}/waive`, {
+            const response = await fetch(`http://localhost:8080/api/fines/${fineId}/waive`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason: 'Waived by librarian' })

@@ -12,51 +12,68 @@ function MemberDashboard() {
         activeBorrows: 0,
         totalBorrowed: 0,
         unpaidFines: 0,
+        totalOutstanding: 0,
         activeReservations: 0
     });
     const [activeBorrows, setActiveBorrows] = useState([]);
+    const [unpaidFines, setUnpaidFines] = useState([]);
     const [upcomingDueDates, setUpcomingDueDates] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        // For demo purposes, using a mock member ID
-        // In production, get from authentication context
-        const mockMemberId = 'member123';
-        loadDashboardData(mockMemberId);
-    }, []);
+        // Get member ID from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.id) {
+            loadDashboardData(user.id);
+            setMember(user);
+        } else {
+            setError('User not found. Please login again.');
+            router.push('/member-login');
+        }
+    }, [router]);
 
     const loadDashboardData = async (memberId) => {
         setLoading(true);
+        setError('');
+
         try {
-            const [borrows, fines, reservations] = await Promise.all([
-                fetch(`http://localhost:8081/api/borrow/member/${memberId}`).then(r => r.json()).catch(() => []),
-                fetch(`http://localhost:8081/api/fines/member/${memberId}`).then(r => r.json()).catch(() => []),
-                fetch(`http://localhost:8081/api/reservations/member/${memberId}`).then(r => r.json()).catch(() => [])
-            ]);
+            const response = await fetch(`http://localhost:8080/api/members/${memberId}/dashboard`);
 
-            const active = borrows.filter(b => !b.returned);
-            const unpaid = fines.filter(f => !f.paid);
-            const activeRes = reservations.filter(r => r.status === 'PENDING' || r.status === 'APPROVED');
+            if (!response.ok) {
+                throw new Error('Failed to load dashboard data');
+            }
 
-            // Get upcoming due dates (within 3 days)
+            const data = await response.json();
+
+            // Set statistics
+            setStats(data.stats || {
+                activeBorrows: 0,
+                totalBorrowed: 0,
+                unpaidFines: 0,
+                totalOutstanding: 0,
+                activeReservations: 0
+            });
+
+            // Set active borrows
+            setActiveBorrows(data.activeBorrows || []);
+
+            // Set unpaid fines
+            setUnpaidFines(data.unpaidFines || []);
+
+            // Calculate upcoming due dates (within 3 days)
             const today = new Date();
             const threeDaysFromNow = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
-            const upcoming = active.filter(b => {
-                const dueDate = new Date(b.dueDate);
+            const upcoming = (data.activeBorrows || []).filter(borrow => {
+                if (!borrow.dueDate) return false;
+                const dueDate = new Date(borrow.dueDate);
                 return dueDate >= today && dueDate <= threeDaysFromNow;
             });
-
-            setStats({
-                activeBorrows: active.length,
-                totalBorrowed: borrows.length,
-                unpaidFines: unpaid.length,
-                activeReservations: activeRes.length
-            });
-
-            setActiveBorrows(active.slice(0, 5));
             setUpcomingDueDates(upcoming);
+
         } catch (error) {
             console.error('Error loading dashboard data:', error);
+            setError('Failed to load dashboard data. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -64,30 +81,62 @@ function MemberDashboard() {
 
     if (loading) return <LoadingSpinner />;
 
+    if (error) {
+        return (
+            <>
+                <Navbar />
+                <div style={styles.layout}>
+                    <Sidebar role="member" />
+                    <main style={styles.main}>
+                        <div style={styles.errorContainer}>
+                            <h2 style={styles.errorTitle}>Error</h2>
+                            <p style={styles.errorMessage}>{error}</p>
+                            <button
+                                onClick={() => window.location.reload()}
+                                style={styles.retryButton}
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    </main>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
             <Navbar />
             <div style={styles.layout}>
                 <Sidebar role="member" />
                 <main style={styles.main}>
-                    <h1 style={styles.title}>Member Dashboard</h1>
+                    <div style={styles.welcomeSection}>
+                        <h1 style={styles.title}>Welcome back, {member?.name || 'Member'}!</h1>
+                        <p style={styles.subtitle}>Here's your library account overview</p>
+                    </div>
 
                     {/* Stats Grid */}
                     <div style={styles.statsGrid}>
                         <div style={styles.statCard}>
-                            <h3>Active Borrows</h3>
+                            <div style={styles.statIcon}>📚</div>
+                            <h3 style={styles.statLabel}>Active Borrows</h3>
                             <p style={styles.statNumber}>{stats.activeBorrows}</p>
                         </div>
                         <div style={styles.statCard}>
-                            <h3>Total Borrowed</h3>
+                            <div style={styles.statIcon}>📖</div>
+                            <h3 style={styles.statLabel}>Total Borrowed</h3>
                             <p style={{ ...styles.statNumber, color: '#3498db' }}>{stats.totalBorrowed}</p>
                         </div>
                         <div style={styles.statCard}>
-                            <h3>Unpaid Fines</h3>
-                            <p style={{ ...styles.statNumber, color: '#e74c3c' }}>{stats.unpaidFines}</p>
+                            <div style={styles.statIcon}>💰</div>
+                            <h3 style={styles.statLabel}>Outstanding Fines</h3>
+                            <p style={{ ...styles.statNumber, color: '#e74c3c' }}>
+                                ${(stats.totalOutstanding || 0).toFixed(2)}
+                            </p>
                         </div>
                         <div style={styles.statCard}>
-                            <h3>Active Reservations</h3>
+                            <div style={styles.statIcon}>📅</div>
+                            <h3 style={styles.statLabel}>Active Reservations</h3>
                             <p style={{ ...styles.statNumber, color: '#f39c12' }}>{stats.activeReservations}</p>
                         </div>
                     </div>
@@ -108,63 +157,88 @@ function MemberDashboard() {
                         </div>
                     )}
 
-                    {/* Active Borrows */}
-                    <div style={styles.section}>
-                        <h2 style={styles.sectionTitle}>My Active Borrows</h2>
-                        {activeBorrows.length === 0 ? (
-                            <p style={styles.noData}>No active borrows</p>
-                        ) : (
-                            <div style={styles.borrowsList}>
-                                {activeBorrows.map((borrow) => {
-                                    const isOverdue = new Date(borrow.dueDate) < new Date();
-                                    return (
-                                        <div key={borrow.id} style={styles.borrowCard}>
-                                            <div style={styles.borrowInfo}>
-                                                <p><strong>Book ID:</strong> {borrow.bookID}</p>
-                                                <p><strong>Issue Date:</strong> {new Date(borrow.issueDate).toLocaleDateString()}</p>
-                                                <p><strong>Due Date:</strong> {new Date(borrow.dueDate).toLocaleDateString()}</p>
-                                            </div>
-                                            <span style={{
-                                                ...styles.status,
-                                                backgroundColor: isOverdue ? '#e74c3c' : '#27ae60'
-                                            }}>
-                                                {isOverdue ? 'Overdue' : 'Active'}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div style={styles.section}>
-                        <h2 style={styles.sectionTitle}>Quick Actions</h2>
-                        <div style={styles.actionsGrid}>
-                            <button
-                                onClick={() => router.push('/member/books')}
-                                style={styles.actionBtn}
-                            >
-                                📚 Browse Books
-                            </button>
-                            <button
-                                onClick={() => router.push('/member/borrows')}
-                                style={styles.actionBtn}
-                            >
-                                📖 My Borrows
-                            </button>
-                            <button
-                                onClick={() => router.push('/member/reservations')}
-                                style={styles.actionBtn}
-                            >
-                                📅 My Reservations
-                            </button>
+                    {/* Outstanding Fines Alert */}
+                    {unpaidFines.length > 0 && (
+                        <div style={styles.fineAlertBox}>
+                            <h3 style={styles.fineAlertTitle}>💰 Outstanding Fines</h3>
+                            <p>You have {unpaidFines.length} unpaid fine(s) totaling ${(stats.totalOutstanding || 0).toFixed(2)}</p>
                             <button
                                 onClick={() => router.push('/member/fines')}
-                                style={styles.actionBtn}
+                                style={styles.payFinesButton}
                             >
-                                💰 My Fines
+                                View & Pay Fines
                             </button>
+                        </div>
+                    )}
+
+                    <div style={styles.sectionsGrid}>
+                        {/* Active Borrows */}
+                        <div style={styles.section}>
+                            <h2 style={styles.sectionTitle}>My Active Borrows</h2>
+                            {activeBorrows.length === 0 ? (
+                                <p style={styles.noData}>No active borrows</p>
+                            ) : (
+                                <div style={styles.borrowsList}>
+                                    {activeBorrows.map((borrow) => {
+                                        const isOverdue = new Date(borrow.dueDate) < new Date();
+                                        const daysUntilDue = Math.ceil((new Date(borrow.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+
+                                        return (
+                                            <div key={borrow.id} style={styles.borrowCard}>
+                                                <div style={styles.borrowInfo}>
+                                                    <p><strong>Book ID:</strong> {borrow.bookID}</p>
+                                                    <p><strong>Issue Date:</strong> {new Date(borrow.issueDate).toLocaleDateString()}</p>
+                                                    <p><strong>Due Date:</strong> {new Date(borrow.dueDate).toLocaleDateString()}</p>
+                                                    {!isOverdue && daysUntilDue <= 3 && (
+                                                        <p style={styles.dueSoon}>Due in {daysUntilDue} day(s)</p>
+                                                    )}
+                                                </div>
+                                                <span style={{
+                                                    ...styles.status,
+                                                    backgroundColor: isOverdue ? '#e74c3c' : (daysUntilDue <= 3 ? '#f39c12' : '#27ae60')
+                                                }}>
+                                                    {isOverdue ? 'Overdue' : (daysUntilDue <= 3 ? 'Due Soon' : 'Active')}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div style={styles.section}>
+                            <h2 style={styles.sectionTitle}>Quick Actions</h2>
+                            <div style={styles.actionsGrid}>
+                                <button
+                                    onClick={() => router.push('/member/books')}
+                                    style={styles.actionBtn}
+                                >
+                                    <span style={styles.actionIcon}>🔍</span>
+                                    Browse Books
+                                </button>
+                                <button
+                                    onClick={() => router.push('/member/borrows')}
+                                    style={styles.actionBtn}
+                                >
+                                    <span style={styles.actionIcon}>📖</span>
+                                    My Borrows
+                                </button>
+                                <button
+                                    onClick={() => router.push('/member/reservations')}
+                                    style={styles.actionBtn}
+                                >
+                                    <span style={styles.actionIcon}>📅</span>
+                                    Reservations
+                                </button>
+                                <button
+                                    onClick={() => router.push('/member/fines')}
+                                    style={styles.actionBtn}
+                                >
+                                    <span style={styles.actionIcon}>💰</span>
+                                    My Fines
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </main>
@@ -178,110 +252,235 @@ const styles = {
     main: {
         flex: 1,
         padding: '2rem',
-        backgroundColor: '#ecf0f1',
+        backgroundColor: '#f8fafc',
         minHeight: 'calc(100vh - 60px)',
         marginLeft: '260px'
     },
-    title: {
-        color: '#2c3e50',
+    welcomeSection: {
         marginBottom: '2rem'
+    },
+    title: {
+        color: '#1f2937',
+        fontSize: '2rem',
+        fontWeight: 'bold',
+        marginBottom: '0.5rem'
+    },
+    subtitle: {
+        color: '#6b7280',
+        fontSize: '1.1rem'
     },
     statsGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
         gap: '1.5rem',
         marginBottom: '2rem'
     },
     statCard: {
         backgroundColor: 'white',
         padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        textAlign: 'center'
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+        textAlign: 'center',
+        border: '1px solid #e5e7eb',
+        transition: 'transform 0.2s, box-shadow 0.2s'
+    },
+    statIcon: {
+        fontSize: '2.5rem',
+        marginBottom: '1rem'
+    },
+    statLabel: {
+        color: '#6b7280',
+        fontSize: '0.9rem',
+        fontWeight: '500',
+        marginBottom: '0.5rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em'
     },
     statNumber: {
         fontSize: '2.5rem',
         fontWeight: 'bold',
-        color: '#27ae60',
-        margin: '1rem 0 0 0'
+        color: '#10b981',
+        margin: 0
     },
     alertBox: {
-        backgroundColor: '#fff3cd',
-        border: '1px solid #ffc107',
-        borderRadius: '8px',
+        backgroundColor: '#fef3c7',
+        border: '1px solid #f59e0b',
+        borderRadius: '12px',
         padding: '1.5rem',
         marginBottom: '2rem'
     },
     alertTitle: {
-        color: '#856404',
+        color: '#92400e',
         marginTop: 0,
-        marginBottom: '1rem'
+        marginBottom: '1rem',
+        fontSize: '1.1rem',
+        fontWeight: 'bold'
     },
     alertItem: {
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '0.5rem 0',
-        borderBottom: '1px solid #ffc107'
+        padding: '0.75rem 0',
+        borderBottom: '1px solid #f59e0b'
     },
     dueDate: {
         fontWeight: 'bold',
-        color: '#856404'
+        color: '#92400e'
+    },
+    fineAlertBox: {
+        backgroundColor: '#fee2e2',
+        border: '1px solid #ef4444',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        marginBottom: '2rem',
+        textAlign: 'center'
+    },
+    fineAlertTitle: {
+        color: '#dc2626',
+        marginTop: 0,
+        marginBottom: '1rem',
+        fontSize: '1.1rem',
+        fontWeight: 'bold'
+    },
+    payFinesButton: {
+        backgroundColor: '#ef4444',
+        color: 'white',
+        border: 'none',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '8px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        marginTop: '1rem',
+        transition: 'background-color 0.2s'
+    },
+    sectionsGrid: {
+        display: 'grid',
+        gridTemplateColumns: '2fr 1fr',
+        gap: '2rem'
     },
     section: {
         backgroundColor: 'white',
         padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        marginBottom: '2rem'
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+        border: '1px solid #e5e7eb'
     },
     sectionTitle: {
-        color: '#2c3e50',
+        color: '#1f2937',
         marginTop: 0,
-        marginBottom: '1.5rem'
+        marginBottom: '1.5rem',
+        fontSize: '1.25rem',
+        fontWeight: 'bold'
     },
     borrowsList: {
-        display: 'grid',
+        display: 'flex',
+        flexDirection: 'column',
         gap: '1rem'
     },
     borrowCard: {
-        padding: '1rem',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
+        padding: '1.25rem',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: '#f9fafb'
     },
     borrowInfo: {
         flex: 1
     },
+    dueSoon: {
+        color: '#f59e0b',
+        fontWeight: 'bold',
+        fontSize: '0.9rem'
+    },
     status: {
         padding: '0.5rem 1rem',
-        borderRadius: '12px',
+        borderRadius: '20px',
         color: 'white',
         fontSize: '0.875rem',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        textAlign: 'center',
+        minWidth: '80px'
     },
     actionsGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: '1rem'
     },
     actionBtn: {
-        padding: '1.5rem',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
+        padding: '1.25rem',
+        backgroundColor: '#f8fafc',
+        color: '#374151',
+        border: '2px solid #e5e7eb',
         borderRadius: '8px',
         cursor: 'pointer',
-        fontSize: '1.1rem',
-        fontWeight: 'bold',
-        transition: 'background-color 0.3s'
+        fontSize: '1rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem'
+    },
+    actionIcon: {
+        fontSize: '1.25rem'
     },
     noData: {
         textAlign: 'center',
-        padding: '2rem',
-        color: '#7f8c8d'
+        padding: '3rem 2rem',
+        color: '#9ca3af',
+        fontSize: '1.1rem'
+    },
+    errorContainer: {
+        textAlign: 'center',
+        padding: '3rem',
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+    },
+    errorTitle: {
+        color: '#ef4444',
+        fontSize: '1.5rem',
+        marginBottom: '1rem'
+    },
+    errorMessage: {
+        color: '#6b7280',
+        marginBottom: '2rem'
+    },
+    retryButton: {
+        backgroundColor: '#3b82f6',
+        color: 'white',
+        border: 'none',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '8px',
+        fontWeight: '600',
+        cursor: 'pointer'
     }
 };
 
 export default withAuth(MemberDashboard);
+
+// Add interactive styles
+if (typeof window !== 'undefined') {
+    const style = document.createElement('style');
+    style.textContent = `
+        @media (max-width: 1024px) {
+            .main { margin-left: 0 !important; }
+            .sectionsGrid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 768px) {
+            .statsGrid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 480px) {
+            .statsGrid { grid-template-columns: 1fr !important; }
+        }
+        
+        /* Hover effects */
+        .statCard:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important; }
+        .actionBtn:hover { background-color: #e5e7eb !important; border-color: #10b981 !important; color: #10b981 !important; }
+        .payFinesButton:hover { background-color: #dc2626 !important; }
+        .retryButton:hover { background-color: #2563eb !important; }
+    `;
+    if (!document.querySelector('style[data-member-dashboard]')) {
+        style.setAttribute('data-member-dashboard', 'true');
+        document.head.appendChild(style);
+    }
+}

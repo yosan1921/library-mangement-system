@@ -38,6 +38,12 @@ public class SystemSettingsService {
         if (newSettings.getFinePerDay() != null) {
             currentSettings.setFinePerDay(newSettings.getFinePerDay());
         }
+        if (newSettings.getDamagedBookFine() != null) {
+            currentSettings.setDamagedBookFine(newSettings.getDamagedBookFine());
+        }
+        if (newSettings.getLostBookFine() != null) {
+            currentSettings.setLostBookFine(newSettings.getLostBookFine());
+        }
         if (newSettings.getMaxRenewals() != null) {
             currentSettings.setMaxRenewals(newSettings.getMaxRenewals());
         }
@@ -105,6 +111,8 @@ public class SystemSettingsService {
         currentSettings.setMaxBooksPerMember(5);
         currentSettings.setBorrowDurationDays(14);
         currentSettings.setFinePerDay(1.0);
+        currentSettings.setDamagedBookFine(10.0);
+        currentSettings.setLostBookFine(25.0);
         currentSettings.setMaxRenewals(2);
         currentSettings.setReservationExpiryDays(3);
         currentSettings.setEmailNotificationsEnabled(false);

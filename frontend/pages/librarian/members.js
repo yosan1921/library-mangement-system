@@ -18,7 +18,7 @@ export default function LibrarianMembers() {
     const loadMembers = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:8081/api/members');
+            const response = await fetch('http://localhost:8080/api/members');
             const data = await response.json();
             setMembers(data);
         } catch (error) {
@@ -30,7 +30,7 @@ export default function LibrarianMembers() {
 
     const loadMemberHistory = async (memberId) => {
         try {
-            const response = await fetch(`http://localhost:8081/api/borrow/member/${memberId}`);
+            const response = await fetch(`http://localhost:8080/api/borrow/member/${memberId}`);
             const data = await response.json();
             setBorrowHistory(data);
             setSelectedMember(memberId);

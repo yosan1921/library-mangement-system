@@ -20,7 +20,7 @@ export default function MemberReservations() {
     const loadReservations = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8081/api/reservations/member/${memberId}`);
+            const response = await fetch(`http://localhost:8080/api/reservations/member/${memberId}`);
             const data = await response.json();
             setReservations(data);
         } catch (error) {
@@ -32,7 +32,7 @@ export default function MemberReservations() {
 
     const loadBooks = async () => {
         try {
-            const response = await fetch('http://localhost:8081/api/books');
+            const response = await fetch('http://localhost:8080/api/books');
             const data = await response.json();
 
             const bookMap = {};
@@ -49,7 +49,7 @@ export default function MemberReservations() {
         if (!confirm('Are you sure you want to cancel this reservation?')) return;
 
         try {
-            const response = await fetch(`http://localhost:8081/api/reservations/${id}`, {
+            const response = await fetch(`http://localhost:8080/api/reservations/${id}`, {
                 method: 'DELETE'
             });
 

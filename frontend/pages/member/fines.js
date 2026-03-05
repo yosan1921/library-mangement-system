@@ -20,7 +20,7 @@ export default function MemberFines() {
     const loadFines = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8081/api/fines/member/${memberId}`);
+            const response = await fetch(`http://localhost:8080/api/fines/member/${memberId}`);
             const data = await response.json();
             setFines(data);
 
@@ -40,7 +40,7 @@ export default function MemberFines() {
         if (!confirm('Confirm payment of this fine?')) return;
 
         try {
-            const response = await fetch(`http://localhost:8081/api/fines/${fineId}/pay`, {
+            const response = await fetch(`http://localhost:8080/api/fines/${fineId}/pay`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

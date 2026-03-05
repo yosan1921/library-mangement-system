@@ -20,7 +20,7 @@ export default function MemberBorrows() {
     const loadBorrows = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8081/api/borrow/member/${memberId}`);
+            const response = await fetch(`http://localhost:8080/api/borrow/member/${memberId}`);
             const data = await response.json();
             setBorrows(data);
         } catch (error) {
@@ -32,7 +32,7 @@ export default function MemberBorrows() {
 
     const loadBooks = async () => {
         try {
-            const response = await fetch('http://localhost:8081/api/books');
+            const response = await fetch('http://localhost:8080/api/books');
             const data = await response.json();
 
             // Create a map of book ID to book details

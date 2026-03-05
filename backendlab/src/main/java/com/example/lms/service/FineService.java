@@ -4,12 +4,12 @@ import com.example.lms.model.BorrowRecord;
 import com.example.lms.model.Fine;
 import com.example.lms.model.Member;
 import com.example.lms.model.Payment;
-import com.example.lms.model.Member;
+import com.example.lms.model.SystemSettings;
 import com.example.lms.repository.BorrowRecordRepository;
 import com.example.lms.repository.FineRepository;
 import com.example.lms.repository.MemberRepository;
 import com.example.lms.repository.PaymentRepository;
-import com.example.lms.repository.MemberRepository;
+import com.example.lms.repository.SystemSettingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -34,11 +34,126 @@ public class FineService {
     @Autowired
     private MemberRepository memberRepository;
     
+    @Autowired
+    private SystemSettingsRepository systemSettingsRepository;
+    
     @Autowired(required = false)
     private NotificationService notificationService;
     
-    private static final Double FINE_PER_DAY = 1.0; // $1 per day overdue
+    /**
+     * Get system settings with defaults if none exist
+     */
+    private SystemSettings getSystemSettings() {
+        List<SystemSettings> settings = systemSettingsRepository.findAll();
+        if (settings.isEmpty()) {
+            SystemSettings defaultSettings = new SystemSettings();
+            return systemSettingsRepository.save(defaultSettings);
+        }
+        return settings.get(0);
+    }
     
+    /**
+     * Automatically calculate and create fine based on borrow record status and condition
+     * This is the main method for automated fine generation
+     */
+    public Fine calculateAndCreateAutomaticFine(String borrowRecordID) {
+        BorrowRecord record = borrowRecordRepository.findById(borrowRecordID)
+            .orElseThrow(() -> new RuntimeException("Borrow record not found"));
+        
+        // Check if fine already exists for this borrow record
+        List<Fine> existingFines = fineRepository.findByBorrowRecordID(borrowRecordID);
+        if (!existingFines.isEmpty()) {
+            throw new RuntimeException("Fine already exists for this borrow record");
+        }
+        
+        SystemSettings settings = getSystemSettings();
+        Fine fine = new Fine();
+        fine.setMemberID(record.getMemberID());
+        fine.setBorrowRecordID(borrowRecordID);
+        fine.setAmountPaid(0.0);
+        fine.setIssueDate(LocalDate.now());
+        fine.setStatus("UNPAID");
+        
+        // Determine fine type and amount based on book condition and return status
+        if ("LOST".equals(record.getBookCondition()) || "LOST".equals(record.getStatus())) {
+            // Lost book fine
+            fine.setAmount(settings.getLostBookFine());
+            fine.setReason("Lost book - replacement cost");
+        } else if ("DAMAGED".equals(record.getBookCondition()) || "DAMAGED".equals(record.getStatus())) {
+            // Damaged book fine
+            fine.setAmount(settings.getDamagedBookFine());
+            fine.setReason("Damaged book - repair/replacement cost" + 
+                (record.getConditionNotes() != null ? " (" + record.getConditionNotes() + ")" : ""));
+        } else if (record.getDueDate() != null && record.getReturnDate() != null && 
+                   record.getReturnDate().isAfter(record.getDueDate())) {
+            // Overdue fine
+            long daysOverdue = ChronoUnit.DAYS.between(record.getDueDate(), record.getReturnDate());
+            fine.setAmount(daysOverdue * settings.getFinePerDay());
+            fine.setReason("Overdue return: " + daysOverdue + " days late");
+        } else {
+            throw new RuntimeException("No fine applicable for this borrow record");
+        }
+        
+        Fine savedFine = fineRepository.save(fine);
+        
+        // Send fine notification based on fine type
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(record.getMemberID());
+                if (optMember.isPresent()) {
+                    Member member = optMember.get();
+                    if ("LOST".equals(record.getBookCondition()) || "LOST".equals(record.getStatus())) {
+                        notificationService.createLostBookNotification(savedFine, member, record.getConditionNotes());
+                    } else if ("DAMAGED".equals(record.getBookCondition()) || "DAMAGED".equals(record.getStatus())) {
+                        notificationService.createDamagedBookNotification(savedFine, member, record.getConditionNotes());
+                    } else {
+                        notificationService.createFineNotification(savedFine, member);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send fine notification: " + e.getMessage());
+            }
+        }
+        
+        return savedFine;
+    }
+    
+    /**
+     * Create fine for lost book
+     */
+    public Fine createLostBookFine(String borrowRecordID, String notes) {
+        BorrowRecord record = borrowRecordRepository.findById(borrowRecordID)
+            .orElseThrow(() -> new RuntimeException("Borrow record not found"));
+        
+        // Update borrow record status and condition
+        record.setStatus("LOST");
+        record.setBookCondition("LOST");
+        record.setConditionNotes(notes);
+        borrowRecordRepository.save(record);
+        
+        return calculateAndCreateAutomaticFine(borrowRecordID);
+    }
+    
+    /**
+     * Create fine for damaged book
+     */
+    public Fine createDamagedBookFine(String borrowRecordID, String damageDescription) {
+        BorrowRecord record = borrowRecordRepository.findById(borrowRecordID)
+            .orElseThrow(() -> new RuntimeException("Borrow record not found"));
+        
+        // Update borrow record status and condition
+        record.setStatus("DAMAGED");
+        record.setBookCondition("DAMAGED");
+        record.setConditionNotes(damageDescription);
+        record.setReturnDate(LocalDate.now()); // Mark as returned but damaged
+        borrowRecordRepository.save(record);
+        
+        return calculateAndCreateAutomaticFine(borrowRecordID);
+    }
+    
+    /**
+     * Legacy method for overdue fine calculation - now uses system settings
+     */
     public Fine calculateAndCreateFine(String borrowRecordID) {
         BorrowRecord record = borrowRecordRepository.findById(borrowRecordID)
             .orElseThrow(() -> new RuntimeException("Borrow record not found"));
@@ -59,10 +174,12 @@ public class FineService {
             throw new RuntimeException("Fine already exists for this borrow record");
         }
         
+        SystemSettings settings = getSystemSettings();
+        
         Fine fine = new Fine();
         fine.setMemberID(record.getMemberID());
         fine.setBorrowRecordID(borrowRecordID);
-        fine.setAmount(daysOverdue * FINE_PER_DAY);
+        fine.setAmount(daysOverdue * settings.getFinePerDay());
         fine.setAmountPaid(0.0);
         fine.setReason("Overdue return: " + daysOverdue + " days late");
         fine.setIssueDate(LocalDate.now());

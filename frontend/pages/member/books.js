@@ -23,7 +23,7 @@ export default function MemberBooks() {
     const loadBooks = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:8081/api/books');
+            const response = await fetch('http://localhost:8080/api/books');
             const data = await response.json();
             setBooks(data);
 
@@ -40,7 +40,7 @@ export default function MemberBooks() {
 
     const handleReserve = async (bookId) => {
         try {
-            const response = await fetch('http://localhost:8081/api/reservations', {
+            const response = await fetch('http://localhost:8080/api/reservations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ memberID: memberId, bookID: bookId })

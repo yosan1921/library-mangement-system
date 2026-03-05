@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { authService } from '../services/authService';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function MemberLogin() {
     const router = useRouter();
@@ -20,23 +20,113 @@ export default function MemberLogin() {
         setError('');
     };
 
+    const testConnectivity = async () => {
+        console.log('=== CONNECTIVITY TEST ===');
+        try {
+            const testUrl = 'http://localhost:8080/api/test/credentials';
+            console.log('Testing connectivity to:', testUrl);
+
+            const response = await fetch(testUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            console.log('Test response status:', response.status);
+            console.log('Test response ok:', response.ok);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✓ Backend is accessible:', data);
+                alert('✓ Backend connection successful!\nCheck console for details.');
+            } else {
+                console.log('✗ Backend returned error:', response.status);
+                alert(`✗ Backend error: ${response.status}\nCheck console for details.`);
+            }
+        } catch (err) {
+            console.error('✗ Connection test failed:', err);
+            alert(`✗ Cannot connect to backend!\nError: ${err.message}\n\nMake sure backend is running on http://localhost:8080`);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
-        try {
-            const data = await authService.login(formData.username, formData.password);
+        console.log('=== AUTHENTICATION DEBUG ===');
+        console.log('Attempting to authenticate with:', {
+            username: formData.username,
+            password: formData.password
+        });
 
-            // Only allow member role
-            if (data.role === 'member' || data.role === 'MEMBER') {
-                localStorage.setItem('user', JSON.stringify(data));
-                router.push('/member/dashboard');
-            } else {
-                setError('Access denied. This login is for members only.');
+        try {
+            const requestBody = {
+                username: formData.username,
+                password: formData.password
+            };
+
+            console.log('API Endpoint:', API_ENDPOINTS.MEMBERS.AUTHENTICATE);
+            console.log('Request body:', requestBody);
+
+            const response = await fetch(API_ENDPOINTS.MEMBERS.AUTHENTICATE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+            // Get response text first to see what we're actually receiving
+            const responseText = await response.text();
+            console.log('Raw response text:', responseText);
+
+            if (!response.ok) {
+                let errorMessage = 'Login failed';
+                try {
+                    const errorData = JSON.parse(responseText);
+                    console.log('Parsed error response:', errorData);
+                    errorMessage = errorData.error || errorData.message || 'Login failed';
+                } catch (parseError) {
+                    console.log('Could not parse error response as JSON:', parseError);
+                    errorMessage = `Server error (${response.status}): ${responseText}`;
+                }
+                throw new Error(errorMessage);
             }
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+                console.log('Parsed success response:', data);
+            } catch (parseError) {
+                console.log('Could not parse success response as JSON:', parseError);
+                throw new Error('Invalid response format from server');
+            }
+
+            // Store user data in localStorage
+            localStorage.setItem('user', JSON.stringify(data));
+            console.log('User data stored in localStorage');
+
+            // Redirect to member dashboard
+            console.log('Redirecting to member dashboard...');
+            router.push('/member/dashboard');
         } catch (err) {
-            setError(err.message || 'Invalid username or password');
+            console.error('=== AUTHENTICATION ERROR ===');
+            console.error('Error type:', err.constructor.name);
+            console.error('Error message:', err.message);
+            console.error('Full error:', err);
+
+            let displayError = err.message;
+            if (err.name === 'TypeError' && err.message.includes('fetch')) {
+                displayError = 'Cannot connect to server. Make sure the backend is running on http://localhost:8080';
+            }
+
+            setError(displayError);
         } finally {
             setLoading(false);
         }
@@ -55,14 +145,14 @@ export default function MemberLogin() {
 
                 <form onSubmit={handleSubmit} style={styles.form}>
                     <div style={styles.formGroup}>
-                        <label style={styles.label}>Username</label>
+                        <label style={styles.label}>Username or Email</label>
                         <input
                             type="text"
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
                             style={styles.input}
-                            placeholder="Enter member username"
+                            placeholder="Enter username or email"
                             required
                         />
                     </div>
@@ -75,7 +165,7 @@ export default function MemberLogin() {
                             value={formData.password}
                             onChange={handleChange}
                             style={styles.input}
-                            placeholder="Enter member password"
+                            placeholder="Enter password"
                             required
                         />
                     </div>
@@ -85,16 +175,34 @@ export default function MemberLogin() {
                         style={styles.button}
                         disabled={loading}
                     >
-                        {loading ? 'Logging in...' : 'Login as Member'}
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
 
                 <div style={styles.footer}>
+                    <div style={styles.debugSection}>
+                        <button
+                            type="button"
+                            onClick={testConnectivity}
+                            style={styles.testButton}
+                        >
+                            Test Backend Connection
+                        </button>
+                    </div>
+
+                    <div style={styles.registerSection}>
+                        <p style={styles.registerText}>Don't have an account?</p>
+                        <Link href="/member-register" style={styles.registerLink}>
+                            Register Here
+                        </Link>
+                    </div>
+
                     <div style={styles.testCredentials}>
                         <p style={styles.credentialsTitle}>Test Credentials:</p>
-                        <p style={styles.hint}>Username: member</p>
-                        <p style={styles.hint}>Password: mem123</p>
+                        <p style={styles.hint}>Username: testmember</p>
+                        <p style={styles.hint}>Password: password123</p>
                     </div>
+
                     <Link href="/member" style={styles.link}>
                         ← Back to Member Page
                     </Link>
@@ -193,6 +301,48 @@ const styles = {
     footer: {
         marginTop: '1.5rem',
         textAlign: 'center',
+    },
+    debugSection: {
+        backgroundColor: '#fff3cd',
+        padding: '1rem',
+        borderRadius: '8px',
+        marginBottom: '1rem',
+        border: '1px solid #ffeaa7'
+    },
+    testButton: {
+        padding: '0.5rem 1rem',
+        backgroundColor: '#f39c12',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        fontSize: '0.9rem',
+        cursor: 'pointer',
+        fontWeight: '500'
+    },
+    registerSection: {
+        backgroundColor: '#e8f5e8',
+        padding: '1rem',
+        borderRadius: '8px',
+        marginBottom: '1rem',
+        border: '1px solid #10b981'
+    },
+    registerText: {
+        fontSize: '0.9rem',
+        color: '#065f46',
+        margin: '0 0 0.5rem 0',
+        fontWeight: '500'
+    },
+    registerLink: {
+        color: '#10b981',
+        textDecoration: 'none',
+        fontSize: '1rem',
+        fontWeight: 'bold',
+        padding: '0.5rem 1rem',
+        backgroundColor: 'white',
+        borderRadius: '4px',
+        border: '2px solid #10b981',
+        display: 'inline-block',
+        transition: 'all 0.3s'
     },
     testCredentials: {
         backgroundColor: '#f8f9fa',

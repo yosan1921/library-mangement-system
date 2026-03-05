@@ -63,7 +63,7 @@ export default function Navbar() {
                     ) : (
                         <>
                             <Link href="/librarian" style={styles.link}>Librarian</Link>
-                            <Link href="/member" style={styles.link}>Member</Link>
+                            <Link href="/member-login" style={styles.link}>Member</Link>
                             <Link href="/admin-login" style={styles.loginButton}>Login</Link>
                         </>
                     )}
@@ -95,7 +95,7 @@ export default function Navbar() {
                         ) : (
                             <>
                                 <Link href="/librarian" style={styles.mobileLink} onClick={toggleMenu}>Librarian</Link>
-                                <Link href="/member" style={styles.mobileLink} onClick={toggleMenu}>Member</Link>
+                                <Link href="/member-login" style={styles.mobileLink} onClick={toggleMenu}>Member</Link>
                                 <Link href="/admin-login" style={styles.mobileLoginButton} onClick={toggleMenu}>Login</Link>
                             </>
                         )}

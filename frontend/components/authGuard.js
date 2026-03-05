@@ -15,7 +15,13 @@ export default function withAuth(WrappedComponent) {
             try {
                 const user = localStorage.getItem('user');
                 if (!user) {
-                    router.replace('/login');
+                    // Check if we're on a member page to redirect to member login
+                    const currentPath = router.pathname;
+                    if (currentPath.startsWith('/member/')) {
+                        router.replace('/member-login');
+                    } else {
+                        router.replace('/login');
+                    }
                 } else {
                     setChecking(false);
                 }

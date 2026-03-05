@@ -37,6 +37,27 @@ public class BorrowController {
         }
     }
     
+    @PostMapping("/return/{recordId}/condition")
+    public ResponseEntity<?> returnBookWithCondition(@PathVariable String recordId, @RequestBody Map<String, String> request) {
+        try {
+            String bookCondition = request.get("bookCondition");
+            String conditionNotes = request.get("conditionNotes");
+            return ResponseEntity.ok(borrowService.returnBook(recordId, bookCondition, conditionNotes));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/mark-lost/{recordId}")
+    public ResponseEntity<?> markBookAsLost(@PathVariable String recordId, @RequestBody Map<String, String> request) {
+        try {
+            String notes = request.get("notes");
+            return ResponseEntity.ok(borrowService.markBookAsLost(recordId, notes));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
     @GetMapping("/member/{memberID}")
     public List<BorrowRecord> getMemberBorrowHistory(@PathVariable String memberID) {
         return borrowService.getMemberBorrowHistory(memberID);

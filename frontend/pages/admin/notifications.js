@@ -104,9 +104,6 @@ export default function NotificationsManagement() {
 
         try {
             const result = await sendBulkNotifications(selectedNotifications);
-<<<<<<< HEAD
-            alert(`Sent: ${result.sent}, Failed: ${result.failed}`);
-=======
 
             let message = `📊 Bulk Send Results:\n\n`;
             message += `✅ Sent: ${result.sent}\n`;
@@ -126,16 +123,11 @@ export default function NotificationsManagement() {
             }
 
             alert(message);
->>>>>>> ce9e8d1 (final lms)
             setSelectedNotifications([]);
             loadData();
         } catch (error) {
             console.error('Error sending bulk notifications:', error);
-<<<<<<< HEAD
-            alert('Failed to send bulk notifications');
-=======
             alert('Failed to send bulk notifications: ' + (error.message || 'Unknown error'));
->>>>>>> ce9e8d1 (final lms)
         }
     };
 
@@ -225,7 +217,7 @@ export default function NotificationsManagement() {
                     errorMessage += `Details: ${error.response.data.message}`;
                 }
             } else if (error.request) {
-                errorMessage += 'Cannot connect to backend server.\n\nPlease ensure:\n1. Backend is running (mvn spring-boot:run)\n2. Backend is accessible at http://localhost:8081';
+                errorMessage += 'Cannot connect to backend server.\n\nPlease ensure:\n1. Backend is running (mvn spring-boot:run)\n2. Backend is accessible at http://localhost:8080';
             } else {
                 errorMessage += `Error: ${error.message}`;
             }
@@ -430,11 +422,7 @@ export default function NotificationsManagement() {
                                         onChange={() => toggleSelection(notification.id)}
                                     />
                                 </td>
-<<<<<<< HEAD
-                                <td style={styles.td}>{notification.memberName}</td>
-=======
                                 <td style={styles.td}>{notification.memberName || 'Unknown'}</td>
->>>>>>> ce9e8d1 (final lms)
                                 <td style={styles.td}>
                                     <span style={getCategoryBadge(notification.category)}>
                                         {notification.category}
@@ -443,11 +431,6 @@ export default function NotificationsManagement() {
                                 <td style={styles.td}>{notification.subject}</td>
                                 <td style={styles.td}>{notification.type}</td>
                                 <td style={styles.td}>
-<<<<<<< HEAD
-                                    <span style={getStatusBadge(notification.status)}>
-                                        {notification.status}
-                                    </span>
-=======
                                     <span
                                         style={getStatusBadge(notification.status)}
                                         title={notification.status === 'FAILED' && notification.errorMessage ? `Error: ${notification.errorMessage}` : ''}
@@ -459,7 +442,6 @@ export default function NotificationsManagement() {
                                             ⚠️ Hover to see error
                                         </div>
                                     )}
->>>>>>> ce9e8d1 (final lms)
                                 </td>
                                 <td style={styles.td}>{formatDateTime(notification.createdAt)}</td>
                                 <td style={styles.td}>
@@ -471,8 +453,6 @@ export default function NotificationsManagement() {
                                             Send
                                         </button>
                                     )}
-<<<<<<< HEAD
-=======
                                     {notification.status === 'FAILED' && (
                                         <>
                                             <button
@@ -489,28 +469,27 @@ export default function NotificationsManagement() {
                                             </button>
                                         </>
                                     )}
->>>>>>> ce9e8d1 (final lms)
                                     <button
                                         style={{ ...styles.smallButton, ...styles.dangerButton, marginLeft: '0.5rem' }}
                                         onClick={() => handleDeleteNotification(notification.id)}
                                     >
                                         Delete
                                     </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {notifications.length === 0 && (
-                    <p style={styles.emptyMessage}>No notifications found</p>
-                )}
-            </div>
+                                </td >
+                            </tr >
+                        ))
+                        }
+                    </tbody >
+                </table >
+                {
+                    notifications.length === 0 && (
+                        <p style={styles.emptyMessage}>No notifications found</p>
+                    )
+                }
+            </div >
         </div>
     );
-<<<<<<< HEAD
 
-=======
->>>>>>> ce9e8d1 (final lms)
     const renderCreateTab = () => (
         <div style={styles.tabContent}>
             <h2 style={styles.sectionTitle}>Create Custom Notification</h2>
@@ -526,15 +505,11 @@ export default function NotificationsManagement() {
                         <option value="">Choose a member...</option>
                         {members.map(member => (
                             <option key={member.id} value={member.id}>
-<<<<<<< HEAD
-                                {member.name} ({member.email})
-=======
                                 {member.name} ({member.email || 'No email'})
->>>>>>> ce9e8d1 (final lms)
                             </option>
                         ))}
-                    </select>
-                </div>
+                    </select >
+                </div >
 
                 <div style={styles.formGroup}>
                     <label style={styles.label}>Category</label>
@@ -577,8 +552,8 @@ export default function NotificationsManagement() {
                 <button type="submit" style={{ ...styles.button, ...styles.primaryButton }}>
                     Create Notification
                 </button>
-            </form>
-        </div>
+            </form >
+        </div >
     );
 
     const renderTestTab = () => (
@@ -877,9 +852,6 @@ const styles = {
         borderRadius: '8px',
         borderLeft: '4px solid #3498db',
     },
-<<<<<<< HEAD
-};
-=======
     errorHint: {
         fontSize: '0.7rem',
         color: '#e74c3c',
@@ -887,4 +859,3 @@ const styles = {
         fontStyle: 'italic',
     },
 };
->>>>>>> ce9e8d1 (final lms)

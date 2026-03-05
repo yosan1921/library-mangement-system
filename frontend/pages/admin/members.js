@@ -68,24 +68,9 @@ export default function MembersManagement() {
         setError(null);
         setSuccess(null);
 
-<<<<<<< HEAD
         // Validate required fields
-        if (!formData.name || !formData.email || !formData.contact || !formData.membershipID) {
-            setError('Please fill in all required fields (Name, Email, Phone, Membership ID)');
-            return;
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            setError('Please enter a valid email address');
-            return;
-        }
-
-        // Validate phone format (basic validation)
-=======
-        if (!formData.name || !formData.email || !formData.contact || !formData.membershipID) {
-            setError('Please fill in all required fields (Name, Email, Phone, and Membership ID)');
+        if (!formData.name || !formData.email || !formData.contact) {
+            setError('Please fill in all required fields (Name, Email, Phone)');
             return;
         }
 
@@ -97,7 +82,6 @@ export default function MembersManagement() {
         }
 
         // Basic phone validation (optional - can be customized)
->>>>>>> ce9e8d1 (final lms)
         if (formData.contact.length < 10) {
             setError('Please enter a valid phone number (at least 10 digits)');
             return;
@@ -105,11 +89,18 @@ export default function MembersManagement() {
 
         try {
             setLoading(true);
+
+            // Clean up form data - remove empty membershipID to let backend auto-generate
+            const cleanFormData = { ...formData };
+            if (!cleanFormData.membershipID || cleanFormData.membershipID.trim() === '') {
+                delete cleanFormData.membershipID;
+            }
+
             if (editingMember) {
-                await updateMember(editingMember.id, formData);
+                await updateMember(editingMember.id, cleanFormData);
                 setSuccess('Member updated successfully!');
             } else {
-                await addMember(formData);
+                await addMember(cleanFormData);
                 setSuccess('Member added successfully!');
             }
             await loadMembers();
@@ -117,7 +108,7 @@ export default function MembersManagement() {
             setTimeout(() => setSuccess(null), 3000);
         } catch (error) {
             console.error('Error saving member:', error);
-            setError(`Failed to ${editingMember ? 'update' : 'add'} member: ${error.response?.data?.message || error.message}`);
+            setError(`Failed to ${editingMember ? 'update' : 'add'} member: ${error.response?.data?.error || error.response?.data?.message || error.message}`);
         } finally {
             setLoading(false);
         }
@@ -141,7 +132,7 @@ export default function MembersManagement() {
                 setTimeout(() => setSuccess(null), 3000);
             } catch (error) {
                 console.error('Error deleting member:', error);
-                setError('Failed to delete member: ' + (error.response?.data?.message || error.message));
+                setError('Failed to delete member: ' + (error.response?.data?.error || error.response?.data?.message || error.message));
             } finally {
                 setLoading(false);
             }
@@ -253,31 +244,19 @@ export default function MembersManagement() {
                                     <label style={styles.label}>Email Address <span style={styles.required}>*</span></label>
                                     <input
                                         type="email"
-<<<<<<< HEAD
-                                        placeholder="example@gmail.com"
-=======
                                         placeholder="Enter email address (e.g., john.doe@gmail.com)"
->>>>>>> ce9e8d1 (final lms)
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         required
                                         style={styles.input}
                                         disabled={loading}
                                     />
-<<<<<<< HEAD
-                                    <small style={styles.helpText}>Required for email notifications</small>
-=======
->>>>>>> ce9e8d1 (final lms)
                                 </div>
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Phone Number <span style={styles.required}>*</span></label>
                                     <input
                                         type="tel"
-<<<<<<< HEAD
-                                        placeholder="+251912345678"
-=======
                                         placeholder="Enter phone number (e.g., +251912345678)"
->>>>>>> ce9e8d1 (final lms)
                                         value={formData.contact}
                                         onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                                         required
@@ -287,16 +266,16 @@ export default function MembersManagement() {
                                     <small style={styles.helpText}>Required for SMS notifications</small>
                                 </div>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>Membership ID <span style={styles.required}>*</span></label>
+                                    <label style={styles.label}>Membership ID <span style={styles.optional}>(Auto-generated if empty)</span></label>
                                     <input
                                         type="text"
-                                        placeholder="e.g., M001"
+                                        placeholder="Leave empty for auto-generation (e.g., MEM1234567890)"
                                         value={formData.membershipID}
                                         onChange={(e) => setFormData({ ...formData, membershipID: e.target.value })}
-                                        required
                                         style={styles.input}
                                         disabled={loading}
                                     />
+                                    <small style={styles.helpText}>Leave empty to auto-generate a unique ID</small>
                                 </div>
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Role</label>
@@ -331,9 +310,10 @@ export default function MembersManagement() {
                                         Cancel
                                     </button>
                                 </div>
-                            </form>
-                        </div>
-                    )}
+                            </form >
+                        </div >
+                    )
+                    }
 
                     {/* ── Toolbar: Search, Filter, View Toggle ── */}
                     <div className="members-toolbar" style={styles.toolbar}>
@@ -376,111 +356,121 @@ export default function MembersManagement() {
                     </div>
 
                     {/* ── Loading ── */}
-                    {loading && !showForm && (
-                        <div style={styles.loadingWrap}>
-                            <div style={styles.spinner}></div>
-                            <p style={styles.loadingText}>Loading members…</p>
-                        </div>
-                    )}
+                    {
+                        loading && !showForm && (
+                            <div style={styles.loadingWrap}>
+                                <div style={styles.spinner}></div>
+                                <p style={styles.loadingText}>Loading members…</p>
+                            </div>
+                        )
+                    }
 
                     {/* ── Results Info ── */}
-                    {!loading && members.length > 0 && (
-                        <p style={styles.resultsInfo}>
-                            Showing <strong>{filteredMembers.length}</strong> of <strong>{members.length}</strong> members
-                            {searchTerm && <> matching &quot;<em>{searchTerm}</em>&quot;</>}
-                            {filterStatus !== 'all' && <> — <strong>{filterStatus}</strong> only</>}
-                        </p>
-                    )}
+                    {
+                        !loading && members.length > 0 && (
+                            <p style={styles.resultsInfo}>
+                                Showing <strong>{filteredMembers.length}</strong> of <strong>{members.length}</strong> members
+                                {searchTerm && <> matching &quot;<em>{searchTerm}</em>&quot;</>}
+                                {filterStatus !== 'all' && <> — <strong>{filterStatus}</strong> only</>}
+                            </p>
+                        )
+                    }
 
                     {/* ── Empty State ── */}
-                    {filteredMembers.length === 0 && !loading && (
-                        <div style={styles.emptyState}>
-                            <div style={styles.emptyIcon}>{members.length === 0 ? '👥' : '🔍'}</div>
-                            <h3 style={styles.emptyTitle}>
-                                {members.length === 0 ? 'No Members Yet' : 'No Results Found'}
-                            </h3>
-                            <p style={styles.emptyText}>
-                                {members.length === 0
-                                    ? 'Click "Add New Member" to register your first library member.'
-                                    : 'Try adjusting your search or filter criteria.'}
-                            </p>
-                        </div>
-                    )}
+                    {
+                        filteredMembers.length === 0 && !loading && (
+                            <div style={styles.emptyState}>
+                                <div style={styles.emptyIcon}>{members.length === 0 ? '👥' : '🔍'}</div>
+                                <h3 style={styles.emptyTitle}>
+                                    {members.length === 0 ? 'No Members Yet' : 'No Results Found'}
+                                </h3>
+                                <p style={styles.emptyText}>
+                                    {members.length === 0
+                                        ? 'Click "Add New Member" to register your first library member.'
+                                        : 'Try adjusting your search or filter criteria.'}
+                                </p>
+                            </div>
+                        )
+                    }
 
                     {/* ── Grid View ── */}
-                    {viewMode === 'grid' && filteredMembers.length > 0 && (
-                        <div className="members-grid" style={styles.membersGrid}>
-                            {filteredMembers.map((member) => (
-                                <MemberCard
-                                    key={member.id}
-                                    member={member}
-                                    onEdit={handleEdit}
-                                    onDelete={handleDelete}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    {
+                        viewMode === 'grid' && filteredMembers.length > 0 && (
+                            <div className="members-grid" style={styles.membersGrid}>
+                                {filteredMembers.map((member) => (
+                                    <MemberCard
+                                        key={member.id}
+                                        member={member}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDelete}
+                                    />
+                                ))}
+                            </div>
+                        )
+                    }
 
                     {/* ── Table View ── */}
-                    {viewMode === 'table' && filteredMembers.length > 0 && (
-                        <div style={styles.tableWrap}>
-                            <table style={styles.table}>
-                                <thead>
-                                    <tr>
-                                        <th style={styles.th}>Member</th>
-                                        <th style={styles.th}>Membership ID</th>
-                                        <th style={styles.th}>Email</th>
-                                        <th style={styles.th}>Phone</th>
-                                        <th style={styles.th}>Role</th>
-                                        <th style={{ ...styles.th, textAlign: 'center' }}>Status</th>
-                                        <th style={{ ...styles.th, textAlign: 'center' }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredMembers.map((member) => (
-                                        <tr key={member.id} className="members-table-row" style={styles.tr}>
-                                            <td style={styles.td}>
-                                                <div style={styles.memberCellWrap}>
-                                                    <div style={styles.avatarSmall}>
-                                                        {member.name?.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <strong>{member.name}</strong>
-                                                </div>
-                                            </td>
-                                            <td style={{ ...styles.td, fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                                                {member.membershipID}
-                                            </td>
-                                            <td style={styles.td}>{member.email || 'Not provided'}</td>
-                                            <td style={styles.td}>{member.contact || 'Not provided'}</td>
-                                            <td style={styles.td}>
-                                                <span style={styles.roleBadge}>{member.role}</span>
-                                            </td>
-                                            <td style={{ ...styles.td, textAlign: 'center' }}>
-                                                <span style={member.active ? styles.badgeActive : styles.badgeInactive}>
-                                                    {member.active ? '✓ Active' : '✗ Inactive'}
-                                                </span>
-                                            </td>
-                                            <td style={{ ...styles.td, textAlign: 'center' }}>
-                                                <div style={styles.actionBtns}>
-                                                    <button onClick={() => handleEdit(member)} style={styles.btnEditSmall} title="Edit">
-                                                        ✏️
-                                                    </button>
-                                                    <button onClick={() => handleDelete(member.id)} style={styles.btnDeleteSmall} title="Delete">
-                                                        🗑️
-                                                    </button>
-                                                </div>
-                                            </td>
+                    {
+                        viewMode === 'table' && filteredMembers.length > 0 && (
+                            <div style={styles.tableWrap}>
+                                <table style={styles.table}>
+                                    <thead>
+                                        <tr>
+                                            <th style={styles.th}>Member</th>
+                                            <th style={styles.th}>Membership ID</th>
+                                            <th style={styles.th}>Email</th>
+                                            <th style={styles.th}>Phone</th>
+                                            <th style={styles.th}>Role</th>
+                                            <th style={{ ...styles.th, textAlign: 'center' }}>Status</th>
+                                            <th style={{ ...styles.th, textAlign: 'center' }}>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </main>
-            </div>
+                                    </thead>
+                                    <tbody>
+                                        {filteredMembers.map((member) => (
+                                            <tr key={member.id} className="members-table-row" style={styles.tr}>
+                                                <td style={styles.td}>
+                                                    <div style={styles.memberCellWrap}>
+                                                        <div style={styles.avatarSmall}>
+                                                            {member.name?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <strong>{member.name}</strong>
+                                                    </div>
+                                                </td>
+                                                <td style={{ ...styles.td, fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                                                    {member.membershipID}
+                                                </td>
+                                                <td style={styles.td}>{member.email || 'Not provided'}</td>
+                                                <td style={styles.td}>{member.contact || 'Not provided'}</td>
+                                                <td style={styles.td}>
+                                                    <span style={styles.roleBadge}>{member.role}</span>
+                                                </td>
+                                                <td style={{ ...styles.td, textAlign: 'center' }}>
+                                                    <span style={member.active ? styles.badgeActive : styles.badgeInactive}>
+                                                        {member.active ? '✓ Active' : '✗ Inactive'}
+                                                    </span>
+                                                </td>
+                                                <td style={{ ...styles.td, textAlign: 'center' }}>
+                                                    <div style={styles.actionBtns}>
+                                                        <button onClick={() => handleEdit(member)} style={styles.btnEditSmall} title="Edit">
+                                                            ✏️
+                                                        </button>
+                                                        <button onClick={() => handleDelete(member.id)} style={styles.btnDeleteSmall} title="Delete">
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )
+                    }
+                </main >
+            </div >
 
             {/* Injected responsive + animation styles */}
-            <style>{`
+            < style > {`
                 @keyframes fadeSlideIn {
                     from { opacity: 0; transform: translateY(-12px); }
                     to   { opacity: 1; transform: translateY(0); }
@@ -536,7 +526,7 @@ export default function MembersManagement() {
                     outline: none;
                     box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
                 }
-            `}</style>
+            `}</style >
         </>
     );
 }
@@ -689,6 +679,7 @@ const styles = {
         color: '#34495e',
     },
     required: { color: '#e74c3c' },
+    optional: { color: '#7f8c8d', fontSize: '0.85rem' },
     helpText: {
         fontSize: '0.75rem',
         color: '#7f8c8d',

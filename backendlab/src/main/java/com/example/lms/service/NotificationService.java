@@ -37,9 +37,6 @@ public class NotificationService {
     @Autowired
     private ReservationRepository reservationRepository;
     
-    @Autowired
-    private BookRepository bookRepository;
-    
     // Create a notification
     public Notification createNotification(Notification notification) {
         return notificationRepository.save(notification);
@@ -308,6 +305,17 @@ public class NotificationService {
             notification.setType("EMAIL");
         }
         
+        // Get book title from book repository
+        String bookTitle = "Unknown Book";
+        try {
+            Optional<Book> optBook = bookRepository.findById(borrow.getBookID());
+            if (optBook.isPresent()) {
+                bookTitle = optBook.get().getTitle();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching book title: " + e.getMessage());
+        }
+        
         notification.setSubject("Book Due Date Reminder");
         notification.setMessage(String.format(
             "Dear %s,\n\nThis is a reminder that your borrowed book '%s' is due on %s.\n\nPlease return it on time to avoid fines.\n\nThank you,\n%s",
@@ -339,6 +347,17 @@ public class NotificationService {
             notification.setType("SMS");
         } else {
             notification.setType("EMAIL");
+        }
+        
+        // Get book title from book repository
+        String bookTitle = "Unknown Book";
+        try {
+            Optional<Book> optBook = bookRepository.findById(borrow.getBookID());
+            if (optBook.isPresent()) {
+                bookTitle = optBook.get().getTitle();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching book title: " + e.getMessage());
         }
         
         notification.setSubject("Overdue Book Notice");
@@ -374,6 +393,17 @@ public class NotificationService {
             notification.setType("EMAIL");
         }
         
+        // Get book title from book repository
+        String bookTitle = "Unknown Book";
+        try {
+            Optional<Book> optBook = bookRepository.findById(reservation.getBookID());
+            if (optBook.isPresent()) {
+                bookTitle = optBook.get().getTitle();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching book title: " + e.getMessage());
+        }
+        
         notification.setSubject("Reserved Book Available");
         notification.setMessage(String.format(
             "Dear %s,\n\nYour reserved book '%s' is now available for pickup.\n\nPlease collect it within %d days.\n\nThank you,\n%s",
@@ -407,12 +437,30 @@ public class NotificationService {
             notification.setType("EMAIL");
         }
         
+        // Get book title from the borrow record associated with the fine
+        String bookTitle = "Unknown Book";
+        try {
+            if (fine.getBorrowRecordID() != null) {
+                Optional<BorrowRecord> optBorrowRecord = borrowRecordRepository.findById(fine.getBorrowRecordID());
+                if (optBorrowRecord.isPresent()) {
+                    BorrowRecord borrowRecord = optBorrowRecord.get();
+                    Optional<Book> optBook = bookRepository.findById(borrowRecord.getBookID());
+                    if (optBook.isPresent()) {
+                        bookTitle = optBook.get().getTitle();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching book title for fine: " + e.getMessage());
+        }
+        
         notification.setSubject("Fine Notice");
         notification.setMessage(String.format(
             "Dear %s,\n\nYou have an outstanding fine of $%.2f for %s.\n\nReason: %s\n\nPlease pay at your earliest convenience.\n\nThank you,\n%s",
             member.getName(),
             fine.getAmount(),
-            fine.getBookTitle(),
+            bookTitle,
+            fine.getReason(),
             settings.getLibraryName()
         ));
         
@@ -472,11 +520,10 @@ public class NotificationService {
         LocalDate reminderDate = LocalDate.now().plusDays(settings.getDueDateReminderDays());
         
         List<BorrowRecord> upcomingDueBorrows = borrowRecordRepository.findAll().stream()
-            .filter(b -> "BORROWED".equals(b.getStatus()))
+            .filter(b -> "APPROVED".equals(b.getStatus()) && b.getReturnDate() == null)
             .filter(b -> {
-                LocalDate dueDate = b.getDueDate().toInstant()
-                    .atZone(ZoneId.systemDefault()).toLocalDate();
-                return dueDate.equals(reminderDate);
+                LocalDate dueDate = b.getDueDate();
+                return dueDate != null && dueDate.equals(reminderDate);
             })
             .collect(Collectors.toList());
         
@@ -496,11 +543,10 @@ public class NotificationService {
     // Send overdue reminders
     private void sendOverdueReminders(SystemSettings settings) {
         List<BorrowRecord> overdueBorrows = borrowRecordRepository.findAll().stream()
-            .filter(b -> "BORROWED".equals(b.getStatus()))
+            .filter(b -> "APPROVED".equals(b.getStatus()) && b.getReturnDate() == null)
             .filter(b -> {
-                LocalDate dueDate = b.getDueDate().toInstant()
-                    .atZone(ZoneId.systemDefault()).toLocalDate();
-                return dueDate.isBefore(LocalDate.now());
+                LocalDate dueDate = b.getDueDate();
+                return dueDate != null && dueDate.isBefore(LocalDate.now());
             })
             .collect(Collectors.toList());
         
@@ -903,6 +949,126 @@ public class NotificationService {
             settings.getLibraryName()
         ));
         
+        return notificationRepository.save(notification);
+    }
+    
+    // Create damaged book notification
+    public Notification createDamagedBookNotification(Fine fine, Member member, String damageDescription) {
+        Notification notification = new Notification();
+        notification.setMemberId(member.getId());
+        notification.setMemberName(member.getName());
+        notification.setMemberEmail(member.getEmail());
+        notification.setMemberContact(member.getContact());
+        notification.setCategory("DAMAGED_BOOK_FINE");
+        notification.setRelatedEntityId(fine.getId());
+        
+        SystemSettings settings = getSystemSettings();
+        
+        // Determine notification type based on what's available for this member
+        boolean hasEmail = member.getEmail() != null && !member.getEmail().isEmpty();
+        boolean hasContact = member.getContact() != null && !member.getContact().isEmpty();
+        boolean emailEnabled = settings.getEmailNotificationsEnabled();
+        boolean smsEnabled = settings.getSmsNotificationsEnabled();
+        
+        if (hasEmail && hasContact && emailEnabled && smsEnabled) {
+            notification.setType("BOTH");
+        } else if (hasEmail && emailEnabled) {
+            notification.setType("EMAIL");
+        } else if (hasContact && smsEnabled) {
+            notification.setType("SMS");
+        } else {
+            notification.setType("EMAIL");
+            notification.setStatus("FAILED");
+            notification.setErrorMessage("Member has no email or phone number");
+        }
+        
+        // Get book title from the borrow record associated with the fine
+        String bookTitle = "Unknown Book";
+        try {
+            if (fine.getBorrowRecordID() != null) {
+                Optional<BorrowRecord> optBorrowRecord = borrowRecordRepository.findById(fine.getBorrowRecordID());
+                if (optBorrowRecord.isPresent()) {
+                    BorrowRecord borrowRecord = optBorrowRecord.get();
+                    Optional<Book> optBook = bookRepository.findById(borrowRecord.getBookID());
+                    if (optBook.isPresent()) {
+                        bookTitle = optBook.get().getTitle();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching book title for damaged book fine: " + e.getMessage());
+        }
+        
+        notification.setSubject("Damaged Book Fine Notice");
+        notification.setMessage(String.format(
+            "Dear %s,\n\nA fine has been applied to your account for returning a damaged book.\n\nBook: %s\nFine Amount: $%.2f\nDamage Description: %s\n\nPlease pay this fine at your earliest convenience. If you have any questions about this charge, please contact the library.\n\nThank you,\n%s",
+            member.getName(),
+            bookTitle,
+            fine.getAmount(),
+            damageDescription != null ? damageDescription : "Book returned in damaged condition",
+            settings.getLibraryName()
+        ));
+        
+        return notificationRepository.save(notification);
+    }
+    
+    // Create lost book notification
+    public Notification createLostBookNotification(Fine fine, Member member, String lostBookNotes) {
+        Notification notification = new Notification();
+        notification.setMemberId(member.getId());
+        notification.setMemberName(member.getName());
+        notification.setMemberEmail(member.getEmail());
+        notification.setMemberContact(member.getContact());
+        notification.setCategory("LOST_BOOK_FINE");
+        notification.setRelatedEntityId(fine.getId());
+        
+        SystemSettings settings = getSystemSettings();
+        
+        // Determine notification type based on what's available for this member
+        boolean hasEmail = member.getEmail() != null && !member.getEmail().isEmpty();
+        boolean hasContact = member.getContact() != null && !member.getContact().isEmpty();
+        boolean emailEnabled = settings.getEmailNotificationsEnabled();
+        boolean smsEnabled = settings.getSmsNotificationsEnabled();
+        
+        if (hasEmail && hasContact && emailEnabled && smsEnabled) {
+            notification.setType("BOTH");
+        } else if (hasEmail && emailEnabled) {
+            notification.setType("EMAIL");
+        } else if (hasContact && smsEnabled) {
+            notification.setType("SMS");
+        } else {
+            notification.setType("EMAIL");
+            notification.setStatus("FAILED");
+            notification.setErrorMessage("Member has no email or phone number");
+        }
+        
+        // Get book title from the borrow record associated with the fine
+        String bookTitle = "Unknown Book";
+        try {
+            if (fine.getBorrowRecordID() != null) {
+                Optional<BorrowRecord> optBorrowRecord = borrowRecordRepository.findById(fine.getBorrowRecordID());
+                if (optBorrowRecord.isPresent()) {
+                    BorrowRecord borrowRecord = optBorrowRecord.get();
+                    Optional<Book> optBook = bookRepository.findById(borrowRecord.getBookID());
+                    if (optBook.isPresent()) {
+                        bookTitle = optBook.get().getTitle();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching book title for lost book fine: " + e.getMessage());
+        }
+        
+        notification.setSubject("Lost Book Fine Notice");
+        notification.setMessage(String.format(
+            "Dear %s,\n\nA replacement cost fine has been applied to your account for a lost book.\n\nBook: %s\nReplacement Cost: $%.2f\nNotes: %s\n\nThis fine covers the cost of replacing the lost book. Please pay this fine to maintain your library privileges.\n\nIf you find the book, please return it to the library and we may be able to adjust the fine.\n\nThank you,\n%s",
+            member.getName(),
+            bookTitle,
+            fine.getAmount(),
+            lostBookNotes != null ? lostBookNotes : "Book reported as lost",
+            settings.getLibraryName()
+        ));
+
         return notificationRepository.save(notification);
     }
 }

@@ -27,6 +27,9 @@ public class BorrowService {
     @Autowired(required = false)
     private NotificationService notificationService;
     
+    @Autowired(required = false)
+    private FineService fineService;
+    
     public BorrowRecord issueBook(String memberID, String bookID) {
         // Validate inputs
         if (memberID == null || memberID.isEmpty()) {
@@ -126,7 +129,10 @@ public class BorrowService {
         return borrowRecordRepository.findByStatus("PENDING");
     }
     
-    public BorrowRecord returnBook(String recordId) {
+    /**
+     * Return book with condition assessment and automatic fine calculation
+     */
+    public BorrowRecord returnBook(String recordId, String bookCondition, String conditionNotes) {
         BorrowRecord record = borrowRecordRepository.findById(recordId)
             .orElseThrow(() -> new RuntimeException("Borrow record not found"));
         
@@ -137,14 +143,47 @@ public class BorrowService {
         Book book = bookRepository.findById(record.getBookID())
             .orElseThrow(() -> new RuntimeException("Book not found"));
         
-        book.setCopiesAvailable(book.getCopiesAvailable() + 1);
-        bookRepository.save(book);
-        
+        // Set return details
         record.setReturnDate(LocalDate.now());
-        record.setStatus("RETURNED");
+        record.setBookCondition(bookCondition != null ? bookCondition : "GOOD");
+        record.setConditionNotes(conditionNotes);
+        
+        // Determine status based on condition and due date
+        LocalDate today = LocalDate.now();
+        boolean isOverdue = record.getDueDate() != null && today.isAfter(record.getDueDate());
+        
+        if ("DAMAGED".equals(bookCondition)) {
+            record.setStatus("DAMAGED");
+        } else if ("LOST".equals(bookCondition)) {
+            record.setStatus("LOST");
+        } else if (isOverdue) {
+            record.setStatus("RETURNED");
+            record.setOverdue(true);
+        } else {
+            record.setStatus("RETURNED");
+            record.setOverdue(false);
+        }
+        
+        // Update book availability (except for lost books)
+        if (!"LOST".equals(bookCondition)) {
+            book.setCopiesAvailable(book.getCopiesAvailable() + 1);
+            bookRepository.save(book);
+        }
+        
         BorrowRecord savedRecord = borrowRecordRepository.save(record);
         
-        // Send book return confirmation notification
+        // Automatically create fine if applicable
+        if (fineService != null) {
+            try {
+                if (isOverdue || "DAMAGED".equals(bookCondition) || "LOST".equals(bookCondition)) {
+                    fineService.calculateAndCreateAutomaticFine(recordId);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to create automatic fine: " + e.getMessage());
+            }
+        }
+        
+        // Send return confirmation notification
         if (notificationService != null) {
             try {
                 Optional<Member> optMember = memberRepository.findById(record.getMemberID());
@@ -153,6 +192,62 @@ public class BorrowService {
                 }
             } catch (Exception e) {
                 System.err.println("Failed to send book return confirmation notification: " + e.getMessage());
+            }
+        }
+        
+        return savedRecord;
+    }
+    
+    /**
+     * Legacy return method - defaults to good condition
+     */
+    public BorrowRecord returnBook(String recordId) {
+        return returnBook(recordId, "GOOD", null);
+    }
+    
+    /**
+     * Mark book as lost and create fine
+     */
+    public BorrowRecord markBookAsLost(String recordId, String notes) {
+        BorrowRecord record = borrowRecordRepository.findById(recordId)
+            .orElseThrow(() -> new RuntimeException("Borrow record not found"));
+        
+        if (!"APPROVED".equals(record.getStatus())) {
+            throw new RuntimeException("Only approved borrows can be marked as lost");
+        }
+        
+        // Update record
+        record.setStatus("LOST");
+        record.setBookCondition("LOST");
+        record.setConditionNotes(notes);
+        record.setReturnDate(null); // Lost books are not returned
+        
+        BorrowRecord savedRecord = borrowRecordRepository.save(record);
+        
+        // Create fine automatically
+        if (fineService != null) {
+            try {
+                fineService.createLostBookFine(recordId, notes);
+            } catch (Exception e) {
+                System.err.println("Failed to create lost book fine: " + e.getMessage());
+            }
+        }
+        
+        // Send notification
+        if (notificationService != null) {
+            try {
+                Optional<Member> optMember = memberRepository.findById(record.getMemberID());
+                if (optMember.isPresent()) {
+                    // Create a custom notification for lost book
+                    notificationService.createCustomNotification(
+                        record.getMemberID(),
+                        "Lost Book Fine Applied",
+                        String.format("A fine has been applied to your account for the lost book. Please contact the library to resolve this matter."),
+                        "LOST_BOOK_FINE"
+                    );
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send lost book notification: " + e.getMessage());
             }
         }
         

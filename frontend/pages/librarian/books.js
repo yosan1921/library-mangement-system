@@ -30,7 +30,7 @@ export default function LibrarianBooks() {
   const fetchBooks = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8081/api/books');
+      const response = await fetch('http://localhost:8080/api/books');
       const data = await response.json();
       setBooks(data);
     } catch (error) {
@@ -44,7 +44,7 @@ export default function LibrarianBooks() {
   const handleAddBook = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8081/api/books', {
+      const response = await fetch('http://localhost:8080/api/books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,7 +81,7 @@ export default function LibrarianBooks() {
   const handleEditBook = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:8081/api/books/${editingBook.id}`, {
+      const response = await fetch(`http://localhost:8080/api/books/${editingBook.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,7 +123,7 @@ export default function LibrarianBooks() {
   const handleDeleteBook = async (id) => {
     if (confirm('Are you sure you want to delete this book?')) {
       try {
-        const response = await fetch(`http://localhost:8081/api/books/${id}`, {
+        const response = await fetch(`http://localhost:8080/api/books/${id}`, {
           method: 'DELETE'
         });
 

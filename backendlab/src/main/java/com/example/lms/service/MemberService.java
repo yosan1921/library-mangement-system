@@ -47,31 +47,48 @@ public class MemberService {
         if (member.getEmail() == null || member.getEmail().trim().isEmpty()) {
             throw new RuntimeException("Email is required");
         }
-        if (member.getContact() == null || member.getContact().trim().isEmpty()) {
-            throw new RuntimeException("Phone number is required");
+        if (member.getUsername() == null || member.getUsername().trim().isEmpty()) {
+            throw new RuntimeException("Username is required");
         }
         
         // Validate email format
         if (!isValidEmail(member.getEmail())) {
-            throw new RuntimeException("Please enter a valid email address");
+            throw new RuntimeException("Please enter a valid email address (e.g., example@gmail.com)");
         }
         
-        // Validate phone format
-        if (member.getContact().length() < 10) {
-            throw new RuntimeException("Please enter a valid phone number (at least 10 digits)");
+        // Validate phone format if provided
+        if (member.getContact() != null && !member.getContact().trim().isEmpty()) {
+            if (!isValidPhoneNumber(member.getContact())) {
+                throw new RuntimeException("Please enter a valid phone number (8-15 digits)");
+            }
+            // Store cleaned phone number (digits only)
+            member.setContact(member.getContact().replaceAll("[^0-9]", ""));
         }
         
         // Check if email already exists
-        if (memberRepository.findByEmail(member.getEmail()).isPresent()) {
+        if (memberRepository.findByEmail(member.getEmail().trim().toLowerCase()).isPresent()) {
             throw new RuntimeException("Email already registered");
+        }
+        
+        // Check if username already exists
+        if (memberRepository.findByUsername(member.getUsername().trim()).isPresent()) {
+            throw new RuntimeException("Username already taken");
         }
         
         // Generate unique membership ID
         String membershipID = generateMembershipID();
         member.setMembershipID(membershipID);
         
+        // Normalize email to lowercase
+        member.setEmail(member.getEmail().trim().toLowerCase());
+        member.setUsername(member.getUsername().trim());
+        member.setName(member.getName().trim());
+        
         // Encrypt password if provided
         if (member.getPassword() != null && !member.getPassword().trim().isEmpty()) {
+            if (member.getPassword().length() < 6) {
+                throw new RuntimeException("Password must be at least 6 characters");
+            }
             member.setPassword(passwordEncoder.encode(member.getPassword()));
         }
         
@@ -84,23 +101,40 @@ public class MemberService {
         return memberRepository.save(member);
     }
     
-    // Step 2: Member Authentication
-    public Map<String, Object> authenticateMember(String email, String password) {
-        Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+    // Step 2: Member Authentication (Enhanced to support username or email)
+    public Map<String, Object> authenticateMember(String usernameOrEmail, String password) {
+        Member member = null;
+        
+        // Try to find by username first
+        Optional<Member> optMember = memberRepository.findByUsername(usernameOrEmail);
+        if (optMember.isPresent()) {
+            member = optMember.get();
+        } else {
+            // If not found by username, try by email (normalize to lowercase)
+            optMember = memberRepository.findByEmail(usernameOrEmail.toLowerCase());
+            if (optMember.isPresent()) {
+                member = optMember.get();
+            }
+        }
+        
+        if (member == null) {
+            throw new RuntimeException("Invalid username/email or password");
+        }
         
         if (!member.getActive()) {
             throw new RuntimeException("Account is inactive");
         }
         
-        if (!passwordEncoder.matches(password, member.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+        if (member.getPassword() == null || !passwordEncoder.matches(password, member.getPassword())) {
+            throw new RuntimeException("Invalid username/email or password");
         }
         
         Map<String, Object> response = new HashMap<>();
         response.put("id", member.getId());
         response.put("name", member.getName());
+        response.put("username", member.getUsername());
         response.put("email", member.getEmail());
+        response.put("contact", member.getContact());
         response.put("membershipID", member.getMembershipID());
         response.put("role", "member");
         
@@ -330,17 +364,20 @@ public class MemberService {
 
         // Validate email format
         if (!isValidEmail(member.getEmail())) {
-            throw new RuntimeException("Please enter a valid email address");
+            throw new RuntimeException("Please enter a valid email address (e.g., example@gmail.com)");
         }
 
-        // Validate phone format (more flexible validation)
-        String cleanContact = member.getContact().replaceAll("[^0-9]", ""); // Remove non-digits
-        if (cleanContact.length() < 8) { // More flexible minimum length
-            throw new RuntimeException("Please enter a valid phone number (at least 8 digits)");
+        // Validate phone format if provided
+        if (member.getContact() != null && !member.getContact().trim().isEmpty()) {
+            if (!isValidPhoneNumber(member.getContact())) {
+                throw new RuntimeException("Please enter a valid phone number (8-15 digits)");
+            }
+            // Store cleaned phone number (digits only)
+            member.setContact(member.getContact().replaceAll("[^0-9]", ""));
         }
-        member.setContact(cleanContact); // Store cleaned phone number
 
-        // Check for duplicate email
+        // Check for duplicate email (normalize to lowercase)
+        member.setEmail(member.getEmail().trim().toLowerCase());
         if (memberRepository.findByEmail(member.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         }
@@ -411,22 +448,25 @@ public class MemberService {
         if (memberDetails.getEmail() != null && !memberDetails.getEmail().trim().isEmpty()) {
             // Validate email format if provided
             if (!isValidEmail(memberDetails.getEmail())) {
-                throw new RuntimeException("Please enter a valid email address");
+                throw new RuntimeException("Please enter a valid email address (e.g., example@gmail.com)");
             }
+            // Normalize email to lowercase
+            String normalizedEmail = memberDetails.getEmail().trim().toLowerCase();
             // Check for duplicate email (excluding current member)
-            Optional<Member> existingMember = memberRepository.findByEmail(memberDetails.getEmail());
+            Optional<Member> existingMember = memberRepository.findByEmail(normalizedEmail);
             if (existingMember.isPresent() && !existingMember.get().getId().equals(id)) {
                 throw new RuntimeException("Email already exists");
             }
-            member.setEmail(memberDetails.getEmail());
+            member.setEmail(normalizedEmail);
         }
         
         if (memberDetails.getContact() != null && !memberDetails.getContact().trim().isEmpty()) {
             // Validate phone format if provided
-            if (memberDetails.getContact().length() < 10) {
-                throw new RuntimeException("Please enter a valid phone number (at least 10 digits)");
+            if (!isValidPhoneNumber(memberDetails.getContact())) {
+                throw new RuntimeException("Please enter a valid phone number (8-15 digits)");
             }
-            member.setContact(memberDetails.getContact());
+            // Store cleaned phone number
+            member.setContact(memberDetails.getContact().replaceAll("[^0-9]", ""));
         }
         
         if (memberDetails.getMembershipID() != null && !memberDetails.getMembershipID().trim().isEmpty()) {
@@ -467,8 +507,19 @@ public class MemberService {
         if (email == null || email.trim().isEmpty()) {
             return false;
         }
-        // More flexible email regex pattern
+        // Enhanced email regex pattern that matches common email formats
         String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-        return email.trim().matches(emailRegex);
+        return email.trim().toLowerCase().matches(emailRegex);
+    }
+    
+    // Helper method for phone validation
+    private boolean isValidPhoneNumber(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        // Remove all non-digit characters
+        String cleanPhone = phone.replaceAll("[^0-9]", "");
+        // Check if it's a valid length (8-15 digits for international compatibility)
+        return cleanPhone.length() >= 8 && cleanPhone.length() <= 15;
     }
 }

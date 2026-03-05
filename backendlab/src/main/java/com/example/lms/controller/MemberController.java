@@ -2,18 +2,35 @@ package com.example.lms.controller;
 
 import com.example.lms.model.Member;
 import com.example.lms.model.BorrowRecord;
+import com.example.lms.model.Fine;
+import com.example.lms.model.Reservation;
+import com.example.lms.model.Notification;
 import com.example.lms.service.MemberService;
 import com.example.lms.service.BorrowService;
-import com.example.lms.service.BookService;
+import com.example.lms.service.FineService;
+import com.example.lms.service.ReservationService;
+import com.example.lms.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
+/**
+ * MemberController - REST endpoints for member-specific operations
+ * 
+ * This controller handles member authentication, registration, and provides
+ * member-specific data access for the member dashboard and portal.
+ * 
+ * Key Features:
+ * - Member registration and authentication
+ * - Member-specific data retrieval (borrows, fines, reservations, notifications)
+ * - Dashboard statistics and summaries
+ * - Member profile management
+ */
 @RestController
 @RequestMapping("/api/members")
 @CrossOrigin(origins = "*")
@@ -26,107 +43,288 @@ public class MemberController {
     private BorrowService borrowService;
     
     @Autowired
-    private BookService bookService;
+    private FineService fineService;
     
-    // Step 1: Member Registration
+    @Autowired(required = false)
+    private ReservationService reservationService;
+    
+    @Autowired(required = false)
+    private NotificationService notificationService;
+    
+    /**
+     * Member Registration
+     * Extends the existing Add Member functionality with authentication fields
+     */
     @PostMapping("/register")
     public ResponseEntity<?> registerMember(@RequestBody Member member) {
         try {
-            Member registered = memberService.registerMember(member);
+            // Validate required fields for registration
+            if (member.getUsername() == null || member.getUsername().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Username is required"));
+            }
+            if (member.getPassword() == null || member.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Password is required"));
+            }
+            if (member.getPassword().length() < 6) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters"));
+            }
+            
+            Member registeredMember = memberService.registerMember(member);
+            
+            // Return registration success with membership ID
             Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
             response.put("message", "Registration successful");
-            response.put("membershipID", registered.getMembershipID());
-            response.put("member", registered);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            response.put("membershipID", registeredMember.getMembershipID());
+            response.put("username", registeredMember.getUsername());
+            
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
-    // Step 2: Member Login (handled by AuthController, but we can add a specific endpoint)
-    @PostMapping("/login")
-    public ResponseEntity<?> loginMember(@RequestBody Map<String, String> credentials) {
+    /**
+     * Member Authentication
+     * Authenticates member using username/email and password
+     */
+    @PostMapping("/authenticate")
+    public ResponseEntity<?> authenticateMember(@RequestBody Map<String, String> credentials) {
         try {
-            Map<String, Object> result = memberService.authenticateMember(
-                credentials.get("email"), 
-                credentials.get("password")
-            );
-            return ResponseEntity.ok(result);
+            String usernameOrEmail = credentials.get("username");
+            String password = credentials.get("password");
+            
+            if (usernameOrEmail == null || password == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Username and password are required"));
+            }
+            
+            Map<String, Object> authResult = memberService.authenticateMember(usernameOrEmail, password);
+            return ResponseEntity.ok(authResult);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
-    // Step 3: Search Books
-    @GetMapping("/search")
-    public ResponseEntity<?> searchBooks(
-        @RequestParam(required = false) String title,
-        @RequestParam(required = false) String author,
-        @RequestParam(required = false) String category
-    ) {
+    /**
+     * Get Member Profile
+     * Returns member information for the logged-in member
+     */
+    @GetMapping("/{memberId}/profile")
+    public ResponseEntity<?> getMemberProfile(@PathVariable String memberId) {
         try {
-            List<?> results = memberService.searchBooks(title, author, category);
-            return ResponseEntity.ok(results);
+            Optional<Member> optMember = memberService.getMemberById(memberId);
+            if (!optMember.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Member member = optMember.get();
+            
+            // Return safe member data (no password)
+            Map<String, Object> profile = new HashMap<>();
+            profile.put("id", member.getId());
+            profile.put("name", member.getName());
+            profile.put("username", member.getUsername());
+            profile.put("email", member.getEmail());
+            profile.put("contact", member.getContact());
+            profile.put("membershipID", member.getMembershipID());
+            profile.put("active", member.getActive());
+            profile.put("createdAt", member.getCreatedAt());
+            
+            return ResponseEntity.ok(profile);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error searching books: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
-    // Step 4: Borrow Book
-    @PostMapping("/borrow/{bookId}")
-    public ResponseEntity<?> borrowBook(
-        @PathVariable String bookId,
-        @RequestParam String memberId
-    ) {
+    /**
+     * Get Member Dashboard Data
+     * Returns comprehensive dashboard information for a member
+     */
+    @GetMapping("/{memberId}/dashboard")
+    public ResponseEntity<?> getMemberDashboard(@PathVariable String memberId) {
         try {
-            BorrowRecord record = memberService.borrowBook(memberId, bookId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(record);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", e.getMessage()));
-        }
-    }
-    
-    // Step 5: Return Book
-    @PostMapping("/return/{borrowId}")
-    public ResponseEntity<?> returnBook(@PathVariable String borrowId) {
-        try {
-            Map<String, Object> result = memberService.returnBook(borrowId);
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", e.getMessage()));
-        }
-    }
-    
-    // Step 6: View History
-    @GetMapping("/history/{memberId}")
-    public ResponseEntity<?> getMemberHistory(@PathVariable String memberId) {
-        try {
-            List<BorrowRecord> history = memberService.getMemberHistory(memberId);
-            return ResponseEntity.ok(history);
+            // Verify member exists
+            Optional<Member> optMember = memberService.getMemberById(memberId);
+            if (!optMember.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            // Get member's borrow records
+            List<BorrowRecord> allBorrows = borrowService.getMemberBorrowHistory(memberId);
+            List<BorrowRecord> activeBorrows = allBorrows.stream()
+                .filter(record -> "APPROVED".equals(record.getStatus()) && record.getReturnDate() == null)
+                .collect(java.util.stream.Collectors.toList());
+            
+            // Get member's fines
+            List<Fine> allFines = fineService.getMemberFines(memberId);
+            List<Fine> unpaidFines = allFines.stream()
+                .filter(fine -> "UNPAID".equals(fine.getStatus()) || "PARTIALLY_PAID".equals(fine.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+            
+            Double totalOutstanding = fineService.getMemberTotalOutstanding(memberId);
+            
+            // Get member's reservations (if service available)
+            List<Reservation> activeReservations = new java.util.ArrayList<>();
+            if (reservationService != null) {
+                try {
+                    activeReservations = reservationService.getMemberReservations(memberId).stream()
+                        .filter(res -> "PENDING".equals(res.getStatus()) || "APPROVED".equals(res.getStatus()))
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (Exception e) {
+                    System.err.println("Error getting reservations: " + e.getMessage());
+                }
+            }
+            
+            // Get member's notifications (if service available)
+            List<Notification> recentNotifications = new java.util.ArrayList<>();
+            if (notificationService != null) {
+                try {
+                    recentNotifications = notificationService.getNotificationsByMember(memberId).stream()
+                        .limit(5)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (Exception e) {
+                    System.err.println("Error getting notifications: " + e.getMessage());
+                }
+            }
+            
+            // Build dashboard response
+            Map<String, Object> dashboard = new HashMap<>();
+            
+            // Statistics
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("activeBorrows", activeBorrows.size());
+            stats.put("totalBorrowed", allBorrows.size());
+            stats.put("unpaidFines", unpaidFines.size());
+            stats.put("totalOutstanding", totalOutstanding);
+            stats.put("activeReservations", activeReservations.size());
+            
+            dashboard.put("stats", stats);
+            dashboard.put("activeBorrows", activeBorrows.stream().limit(5).collect(java.util.stream.Collectors.toList()));
+            dashboard.put("unpaidFines", unpaidFines.stream().limit(5).collect(java.util.stream.Collectors.toList()));
+            dashboard.put("activeReservations", activeReservations.stream().limit(5).collect(java.util.stream.Collectors.toList()));
+            dashboard.put("recentNotifications", recentNotifications);
+            
+            return ResponseEntity.ok(dashboard);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error fetching history: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
     
-    // Step 6: View Notifications
-    @GetMapping("/notifications/{memberId}")
-    public ResponseEntity<?> getMemberNotifications(@PathVariable String memberId) {
+    /**
+     * Get Member's Borrow Records
+     */
+    @GetMapping("/{memberId}/borrows")
+    public ResponseEntity<List<BorrowRecord>> getMemberBorrows(@PathVariable String memberId) {
         try {
-            List<Map<String, Object>> notifications = memberService.getMemberNotifications(memberId);
+            List<BorrowRecord> borrows = borrowService.getMemberBorrowHistory(memberId);
+            return ResponseEntity.ok(borrows);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Get Member's Active Borrows
+     */
+    @GetMapping("/{memberId}/borrows/active")
+    public ResponseEntity<List<BorrowRecord>> getMemberActiveBorrows(@PathVariable String memberId) {
+        try {
+            List<BorrowRecord> allBorrows = borrowService.getMemberBorrowHistory(memberId);
+            List<BorrowRecord> activeBorrows = allBorrows.stream()
+                .filter(record -> "APPROVED".equals(record.getStatus()) && record.getReturnDate() == null)
+                .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(activeBorrows);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Get Member's Fines
+     */
+    @GetMapping("/{memberId}/fines")
+    public ResponseEntity<List<Fine>> getMemberFines(@PathVariable String memberId) {
+        try {
+            List<Fine> fines = fineService.getMemberFines(memberId);
+            return ResponseEntity.ok(fines);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Get Member's Outstanding Fine Amount
+     */
+    @GetMapping("/{memberId}/fines/outstanding")
+    public ResponseEntity<Map<String, Double>> getMemberOutstandingFines(@PathVariable String memberId) {
+        try {
+            Double outstanding = fineService.getMemberTotalOutstanding(memberId);
+            return ResponseEntity.ok(Map.of("outstanding", outstanding));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Get Member's Reservations
+     */
+    @GetMapping("/{memberId}/reservations")
+    public ResponseEntity<List<Reservation>> getMemberReservations(@PathVariable String memberId) {
+        try {
+            if (reservationService == null) {
+                return ResponseEntity.ok(new java.util.ArrayList<>());
+            }
+            List<Reservation> reservations = reservationService.getMemberReservations(memberId);
+            return ResponseEntity.ok(reservations);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Get Member's Notifications
+     */
+    @GetMapping("/{memberId}/notifications")
+    public ResponseEntity<List<Notification>> getMemberNotifications(@PathVariable String memberId) {
+        try {
+            if (notificationService == null) {
+                return ResponseEntity.ok(new java.util.ArrayList<>());
+            }
+            List<Notification> notifications = notificationService.getNotificationsByMember(memberId);
             return ResponseEntity.ok(notifications);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error fetching notifications: " + e.getMessage()));
+            return ResponseEntity.badRequest().build();
         }
     }
     
-    // Admin endpoints
+    /**
+     * Update Member Profile
+     */
+    @PutMapping("/{memberId}/profile")
+    public ResponseEntity<?> updateMemberProfile(@PathVariable String memberId, @RequestBody Member memberDetails) {
+        try {
+            // Don't allow password updates through this endpoint
+            memberDetails.setPassword(null);
+            
+            Member updatedMember = memberService.updateMember(memberId, memberDetails);
+            
+            // Return safe member data (no password)
+            Map<String, Object> profile = new HashMap<>();
+            profile.put("id", updatedMember.getId());
+            profile.put("name", updatedMember.getName());
+            profile.put("username", updatedMember.getUsername());
+            profile.put("email", updatedMember.getEmail());
+            profile.put("contact", updatedMember.getContact());
+            profile.put("membershipID", updatedMember.getMembershipID());
+            
+            return ResponseEntity.ok(profile);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    // ========== EXISTING ADMIN ENDPOINTS (UNCHANGED) ==========
+    
     @GetMapping
     public List<Member> getAllMembers() {
         return memberService.getAllMembers();
@@ -134,29 +332,23 @@ public class MemberController {
     
     @GetMapping("/{id}")
     public ResponseEntity<Member> getMemberById(@PathVariable String id) {
-        return memberService.getMemberById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+        Optional<Member> member = memberService.getMemberById(id);
+        return member.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
     
     @PostMapping
-    public ResponseEntity<?> addMember(@RequestBody Member member) {
+    public ResponseEntity<Member> addMember(@RequestBody Member member) {
         try {
-            Member savedMember = memberService.addMember(member);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedMember);
+            return ResponseEntity.ok(memberService.addMember(member));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "An unexpected error occurred: " + e.getMessage()));
+            return ResponseEntity.badRequest().build();
         }
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<Member> updateMember(@PathVariable String id, @RequestBody Member member) {
+    public ResponseEntity<Member> updateMember(@PathVariable String id, @RequestBody Member memberDetails) {
         try {
-            return ResponseEntity.ok(memberService.updateMember(id, member));
+            return ResponseEntity.ok(memberService.updateMember(id, memberDetails));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -171,5 +363,11 @@ public class MemberController {
     @GetMapping("/active")
     public List<Member> getActiveMembers() {
         return memberService.getActiveMembers();
+    }
+    
+    @GetMapping("/membership/{membershipID}")
+    public ResponseEntity<Member> getMemberByMembershipID(@PathVariable String membershipID) {
+        Optional<Member> member = memberService.getMemberByMembershipID(membershipID);
+        return member.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 }

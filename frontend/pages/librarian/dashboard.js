@@ -24,11 +24,11 @@ function LibrarianDashboard() {
     const loadStats = async () => {
         try {
             const [active, overdue, books, members, fines] = await Promise.all([
-                fetch('http://localhost:8081/api/borrow/active').then(r => r.json()),
-                fetch('http://localhost:8081/api/borrow/overdue').then(r => r.json()),
-                fetch('http://localhost:8081/api/books').then(r => r.json()),
-                fetch('http://localhost:8081/api/members').then(r => r.json()),
-                fetch('http://localhost:8081/api/fines/unpaid').then(r => r.json())
+                fetch('http://localhost:8080/api/borrow/active').then(r => r.json()),
+                fetch('http://localhost:8080/api/borrow/overdue').then(r => r.json()),
+                fetch('http://localhost:8080/api/books').then(r => r.json()),
+                fetch('http://localhost:8080/api/members').then(r => r.json()),
+                fetch('http://localhost:8080/api/fines/unpaid').then(r => r.json())
             ]);
 
             const availableBooks = books.filter(b => b.copiesAvailable > 0).length;
@@ -50,7 +50,7 @@ function LibrarianDashboard() {
 
     const loadRecentBorrows = async () => {
         try {
-            const response = await fetch('http://localhost:8081/api/borrow/active');
+            const response = await fetch('http://localhost:8080/api/borrow/active');
             const data = await response.json();
             setRecentBorrows(data.slice(0, 5));
         } catch (error) {
