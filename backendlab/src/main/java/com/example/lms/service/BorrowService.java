@@ -61,7 +61,7 @@ public class BorrowService {
         BorrowRecord record = borrowRecordRepository.findById(recordId)
             .orElseThrow(() -> new RuntimeException("Borrow record not found"));
         
-        //if (!"PENDING".equals(record.getStatus())) {
+        if (!"PENDING".equals(record.getStatus())) {
             throw new RuntimeException("Only pending requests can be approved");
         }
         
