@@ -245,7 +245,7 @@ public class NotificationService {
         System.out.println("===================");
         
         // Actual AWS SNS implementation would require AWS SDK
-        throw new Exception("AWS SNS SMS not implemented yet");
+         new Exception("AWS SNS SMS not implemented yet");
     }
     
     private void sendNexmoSMS(Notification notification, SystemSettings settings) throws Exception {
