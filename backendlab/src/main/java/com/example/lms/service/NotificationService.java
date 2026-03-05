@@ -261,7 +261,7 @@ public class NotificationService {
     
     // Send bulk notifications
     public Map<String, Object> sendBulkNotifications(List<String> notificationIds) {
-         sent = 0;
+        int sent = 0;
         int failed = 0;
         
         for (String id : notificationIds) {
