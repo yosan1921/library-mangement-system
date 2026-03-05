@@ -3,6 +3,7 @@ package com.example.lms.service;
 import com.example.lms.model.*;
 import com.example.lms.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import jakarta.mail.*;
@@ -184,7 +185,7 @@ public class NotificationService {
             case "TWILIO":
                 sendTwilioSMS(notification, settings);
                 break;
-           // case "AWS_SNS":
+            case "AWS_SNS":
                 sendAWSSMS(notification, settings);
                 break;
             case "NEXMO":
@@ -201,7 +202,7 @@ public class NotificationService {
         }
     }
     
-    //private void sendTwilioSMS(Notification notification, SystemSettings settings) throws Exception {
+    private void sendTwilioSMS(Notification notification, SystemSettings settings) throws Exception {
         // Twilio SMS implementation
         // Note: This requires Twilio Java SDK dependency
         // Add to pom.xml: <dependency><groupId>com.twilio.sdk</groupId><artifactId>twilio</artifactId><version>9.14.1</version></dependency>
@@ -260,7 +261,7 @@ public class NotificationService {
     }
     
     // Send bulk notifications
-    public Map<String, Object> sendBulkNotifications(List<String> notificationIds) {
+    public Map<String, Object> sendBulkNotifications(@NonNull List<String> notificationIds) {
         int sent = 0;
         int failed = 0;
         
