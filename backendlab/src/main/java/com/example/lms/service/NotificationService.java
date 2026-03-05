@@ -325,7 +325,7 @@ public class NotificationService {
             settings.getLibraryName()
         ));
         
-       // return notificationRepository.save(notification);
+        return notificationRepository.save(notification);
     }
     
     // Create overdue reminder notification
