@@ -22,7 +22,7 @@ public class ReservationController {
         return reservationService.getAllReservations();
     }
     
-   // @PostMapping
+    @PostMapping
     public Reservation createReservation(@RequestBody Map<String, String> request) {
         String memberID = request.get("memberID");
         String bookID = request.get("bookID");
