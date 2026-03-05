@@ -74,7 +74,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
             ConnectionString connectionString = new ConnectionString(mongoUri);
             
             // Build MongoDB client settings with custom configuration
-            MongoClientSettings settings = MongoClientSettings.builder()
+            //MongoClientSettings settings = MongoClientSettings.builder()
                     .applyConnectionString(connectionString)
                     // Configure connection pool for optimal performance and resource management
                     .applyToConnectionPoolSettings(builder -> 
