@@ -201,7 +201,7 @@ public class NotificationService {
         }
     }
     
-    private void sendTwilioSMS(Notification notification, SystemSettings settings) throws Exception {
+    //private void sendTwilioSMS(Notification notification, SystemSettings settings) throws Exception {
         // Twilio SMS implementation
         // Note: This requires Twilio Java SDK dependency
         // Add to pom.xml: <dependency><groupId>com.twilio.sdk</groupId><artifactId>twilio</artifactId><version>9.14.1</version></dependency>
