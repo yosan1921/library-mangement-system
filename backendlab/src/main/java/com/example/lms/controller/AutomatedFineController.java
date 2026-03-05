@@ -41,7 +41,7 @@ public class AutomatedFineController {
                     "errors", result.errors
                 ));
             } else {
-                return ResponseEntity.badRequest().body(Map.of(
+                //return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", "Overdue processing completed with errors",
                     "recordsProcessed", result.recordsProcessed,
