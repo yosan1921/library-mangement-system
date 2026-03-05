@@ -47,7 +47,7 @@ public class Member {
      * Used for login along with password
      * Indexed with unique constraint to prevent duplicates
      */
-    @Indexed(unique = )
+    @Indexed(unique = true)
     private String username;
     
     /**
