@@ -147,7 +147,7 @@ public class NotificationService {
         props.put("mail.smtp.host", settings.getEmailHost() != null ? settings.getEmailHost() : "smtp.gmail.com");
         props.put("mail.smtp.port", settings.getEmailPort() != null ? settings.getEmailPort() : 587);
         
-        Session session = Session.getInstance(props, new Authenticator() {
+        //Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(
