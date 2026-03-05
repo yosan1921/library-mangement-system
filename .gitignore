@@ -18,3 +18,7 @@ node_modules/
 # Build folders
 dist/
 build/
+
+# Uploaded files (keep directory structure but ignore uploaded content)
+backendlab/uploads/profile-photos/*
+!backendlab/uploads/profile-photos/.gitkeep

@@ -427,4 +427,38 @@ public class FineService {
         
         return total;
     }
+    
+    public Fine getFineById(String fineID) {
+        return fineRepository.findById(fineID)
+            .orElseThrow(() -> new RuntimeException("Fine not found with ID: " + fineID));
+    }
+    
+    public Fine updateFine(String fineID, Double amount, String reason) {
+        Fine fine = getFineById(fineID);
+        
+        fine.setAmount(amount);
+        fine.setReason(reason);
+        
+        // Update status based on new amount and existing payments
+        Double amountPaid = fine.getAmountPaid() != null ? fine.getAmountPaid() : 0.0;
+        if (amountPaid >= amount) {
+            fine.setStatus("PAID");
+            if (fine.getPaidDate() == null) {
+                fine.setPaidDate(LocalDate.now());
+            }
+        } else if (amountPaid > 0) {
+            fine.setStatus("PARTIALLY_PAID");
+            fine.setPaidDate(null); // Clear paid date if no longer fully paid
+        } else {
+            fine.setStatus("UNPAID");
+            fine.setPaidDate(null);
+        }
+        
+        return fineRepository.save(fine);
+    }
+    
+    public void deleteFine(String fineID) {
+        Fine fine = getFineById(fineID);
+        fineRepository.deleteById(fineID);
+    }
 }

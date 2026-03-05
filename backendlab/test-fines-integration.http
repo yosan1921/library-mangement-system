@@ -172,3 +172,33 @@ Content-Type: application/json
 # - Payments update fine status correctly
 # - Statistics reflect current system state
 # - All actions are logged and auditable
+
+### NEW ENDPOINTS - Edit and Delete Functionality
+
+### 27. Get Fine by ID
+GET http://localhost:8080/api/fines/FINE_ID
+Content-Type: application/json
+
+### 28. Update Fine (Edit)
+PUT http://localhost:8080/api/fines/FINE_ID
+Content-Type: application/json
+
+{
+  "amount": 12.50,
+  "reason": "Updated fine amount - corrected calculation error"
+}
+
+### 29. Delete Fine
+DELETE http://localhost:8080/api/fines/FINE_ID
+Content-Type: application/json
+
+### Notes for New Endpoints:
+# - GET /api/fines/{fineID}: Retrieves a specific fine by ID
+# - PUT /api/fines/{fineID}: Updates fine amount and reason (only for unpaid/waived fines)
+# - DELETE /api/fines/{fineID}: Deletes a fine (only if no payments recorded)
+# 
+# Business Rules:
+# - Cannot edit fines that are PAID or PARTIALLY_PAID
+# - Cannot reduce fine amount below amount already paid
+# - Cannot delete fines that have payments recorded
+# - Edit/Delete operations are logged for audit purposes

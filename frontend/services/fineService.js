@@ -65,3 +65,18 @@ export const generateFineReport = async () => {
     const response = await axios.get(`${API_URL}/report`);
     return response.data;
 };
+
+export const getFineById = async (fineID) => {
+    const response = await axios.get(`${API_URL}/${fineID}`);
+    return response.data;
+};
+
+export const updateFine = async (fineID, amount, reason) => {
+    const response = await axios.put(`${API_URL}/${fineID}`, { amount, reason });
+    return response.data;
+};
+
+export const deleteFine = async (fineID) => {
+    const response = await axios.delete(`${API_URL}/${fineID}`);
+    return response.data;
+};

@@ -8,7 +8,10 @@ import {
     recordPayment,
     waiveFine,
     createManualFine,
-    generateFineReport
+    generateFineReport,
+    getFineById,
+    updateFine,
+    deleteFine
 } from '../../services/fineService';
 import { getAllMembers } from '../../services/memberService';
 
@@ -38,6 +41,13 @@ export default function FinesManagement() {
     const [manualFineAmount, setManualFineAmount] = useState('');
     const [manualFineReason, setManualFineReason] = useState('');
     const [processingManualFine, setProcessingManualFine] = useState(false);
+
+    // Edit fine modal state
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingFine, setEditingFine] = useState(null);
+    const [editAmount, setEditAmount] = useState('');
+    const [editReason, setEditReason] = useState('');
+    const [processingEdit, setProcessingEdit] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -152,6 +162,68 @@ export default function FinesManagement() {
         setManualFineAmount('');
         setManualFineReason('');
         setError(null);
+    };
+
+    const openEditModal = (fine) => {
+        setEditingFine(fine);
+        setEditAmount(fine.amount.toString());
+        setEditReason(fine.reason);
+        setShowEditModal(true);
+        setError(null);
+    };
+
+    const resetEditForm = () => {
+        setEditingFine(null);
+        setEditAmount('');
+        setEditReason('');
+        setError(null);
+    };
+
+    const handleEditFine = async () => {
+        if (!editAmount || parseFloat(editAmount) <= 0 || !editReason.trim()) {
+            setError('Please fill in all fields with valid values.');
+            return;
+        }
+
+        try {
+            setProcessingEdit(true);
+            await updateFine(editingFine.id, parseFloat(editAmount), editReason);
+            setSuccess('Fine updated successfully!');
+            setShowEditModal(false);
+            resetEditForm();
+            loadData();
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (error) {
+            console.error('Error updating fine:', error);
+            setError('Failed to update fine: ' + (error.response?.data?.message || 'Unknown error'));
+        } finally {
+            setProcessingEdit(false);
+        }
+    };
+
+    const handleDeleteFine = async (fineID) => {
+        const fine = currentList.find(f => f.id === fineID);
+        let confirmMessage = 'Are you sure you want to delete this fine? This action cannot be undone.';
+
+        if (fine && fine.amountPaid > 0) {
+            confirmMessage = `This fine has payments recorded (${formatCurrency(fine.amountPaid)}). Are you sure you want to delete it? This action cannot be undone.`;
+        }
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await deleteFine(fineID);
+            setSuccess('Fine deleted successfully!');
+            loadData();
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (error) {
+            console.error('Error deleting fine:', error);
+            setError('Failed to delete fine: ' + (error.response?.data?.message || 'Unknown error'));
+            setLoading(false);
+        }
     };
 
     const formatDate = (dateString) => {
@@ -429,6 +501,21 @@ export default function FinesManagement() {
                                                                         </button>
                                                                     </>
                                                                 )}
+                                                                {/* Edit and Delete buttons available for ALL statuses */}
+                                                                <button
+                                                                    style={styles.btnEditSmall}
+                                                                    onClick={() => openEditModal(fine)}
+                                                                    title="Edit Fine"
+                                                                >
+                                                                    ✏️ Edit
+                                                                </button>
+                                                                <button
+                                                                    style={styles.btnDeleteSmall}
+                                                                    onClick={() => handleDeleteFine(fine.id)}
+                                                                    title="Delete Fine"
+                                                                >
+                                                                    🗑️ Delete
+                                                                </button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -617,6 +704,97 @@ export default function FinesManagement() {
                                 disabled={processingManualFine}
                             >
                                 {processingManualFine ? '⏳ Creating...' : '＋ Issue Fine'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Edit Fine Modal ── */}
+            {showEditModal && editingFine && (
+                <div style={styles.modalOverlay} onClick={() => !processingEdit && setShowEditModal(false)}>
+                    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+                        <div style={styles.modalHeader}>
+                            <h2 style={styles.modalTitle}>✏️ Edit Fine</h2>
+                            <button onClick={() => !processingEdit && setShowEditModal(false)} style={styles.modalClose}>✕</button>
+                        </div>
+
+                        <div style={styles.modalContent}>
+                            {error && (
+                                <div style={{ ...styles.alertError, marginTop: 0, marginBottom: '1rem' }}>
+                                    <span>❌ {error}</span>
+                                </div>
+                            )}
+
+                            <div style={styles.modalSummaryBox}>
+                                <div style={styles.summaryRow}>
+                                    <span>Member:</span>
+                                    <strong>{members[editingFine.memberID]?.name}</strong>
+                                </div>
+                                <div style={styles.summaryRow}>
+                                    <span>Current Status:</span>
+                                    {getStatusBadge(editingFine.status)}
+                                </div>
+                                {editingFine.amountPaid > 0 && (
+                                    <div style={styles.summaryRow}>
+                                        <span>Amount Paid:</span>
+                                        <strong style={{ color: '#27ae60' }}>{formatCurrency(editingFine.amountPaid)}</strong>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Amount <span style={styles.required}>*</span></label>
+                                <div style={styles.inputPrefixWrap}>
+                                    <span style={styles.inputPrefix}>$</span>
+                                    <input
+                                        type="number"
+                                        style={styles.inputWithPrefix}
+                                        value={editAmount}
+                                        onChange={(e) => setEditAmount(e.target.value)}
+                                        step="0.01"
+                                        min="0.01"
+                                        placeholder="0.00"
+                                        disabled={processingEdit}
+                                    />
+                                </div>
+                                {editingFine.amountPaid > 0 && (
+                                    <small style={{ color: '#7f8c8d', fontSize: '0.8rem' }}>
+                                        Note: Amount paid: {formatCurrency(editingFine.amountPaid)}. Status will be updated automatically.
+                                    </small>
+                                )}
+                            </div>
+
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Reason <span style={styles.required}>*</span></label>
+                                <textarea
+                                    style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+                                    value={editReason}
+                                    onChange={(e) => setEditReason(e.target.value)}
+                                    placeholder="Enter reason for the fine..."
+                                    disabled={processingEdit}
+                                />
+                            </div>
+                        </div>
+                        <div style={styles.modalActions}>
+                            <button
+                                style={{ ...styles.btnFormCancel, opacity: processingEdit ? 0.5 : 1 }}
+                                onClick={() => {
+                                    if (!processingEdit) {
+                                        setShowEditModal(false);
+                                        resetEditForm();
+                                    }
+                                }}
+                                disabled={processingEdit}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                style={{ ...styles.btnSubmit, opacity: processingEdit ? 0.7 : 1 }}
+                                onClick={handleEditFine}
+                                disabled={processingEdit}
+                            >
+                                {processingEdit ? '⏳ Updating...' : '✅ Update Fine'}
                             </button>
                         </div>
                     </div>
@@ -861,6 +1039,7 @@ const styles = {
         backgroundColor: '#f8f9fb',
     },
     tabIcon: { fontSize: '1.1rem' },
+    tabLabel: { fontSize: '0.9rem' },
     tabCount: {
         display: 'inline-flex',
         alignItems: 'center',
@@ -1049,8 +1228,9 @@ const styles = {
     /* Actions */
     actionBtns: {
         display: 'flex',
-        gap: '0.5rem',
+        gap: '0.4rem',
         justifyContent: 'center',
+        flexWrap: 'wrap',
     },
     btnPaySmall: {
         padding: '0.45rem 0.75rem',
@@ -1074,6 +1254,30 @@ const styles = {
         fontSize: '0.85rem',
         fontWeight: '600',
         transition: 'all 0.2s',
+    },
+    btnEditSmall: {
+        padding: '0.45rem 0.75rem',
+        background: 'linear-gradient(135deg, #3498db, #2980b9)',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+        boxShadow: '0 2px 8px rgba(52,152,219,0.3)',
+    },
+    btnDeleteSmall: {
+        padding: '0.45rem 0.75rem',
+        background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+        boxShadow: '0 2px 8px rgba(231,76,60,0.3)',
     },
 
     /* Modals */

@@ -147,4 +147,37 @@ public class FineController {
     public Map<String, Object> generateReport() {
         return fineService.generateFineReport();
     }
+
+
+    @GetMapping("/{fineID}")
+    public ResponseEntity<Fine> getFineById(@PathVariable String fineID) {
+        try {
+            Fine fine = fineService.getFineById(fineID);
+            return ResponseEntity.ok(fine);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{fineID}")
+    public ResponseEntity<Fine> updateFine(@PathVariable String fineID, @RequestBody Map<String, Object> request) {
+        try {
+            Double amount = Double.valueOf(request.get("amount").toString());
+            String reason = (String) request.get("reason");
+            Fine updatedFine = fineService.updateFine(fineID, amount, reason);
+            return ResponseEntity.ok(updatedFine);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/{fineID}")
+    public ResponseEntity<Void> deleteFine(@PathVariable String fineID) {
+        try {
+            fineService.deleteFine(fineID);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

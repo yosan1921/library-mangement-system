@@ -131,6 +131,13 @@ public class Admin {
      * Provides accountability and audit trail for admin account creation
      */
     private String createdBy;
+    
+    /**
+     * Profile photo filename or path
+     * Stores the filename of the uploaded profile photo
+     * Used to retrieve and display the admin's profile picture
+     */
+    private String profilePhoto;
 
     /**
      * Default constructor for MongoDB deserialization
@@ -292,4 +299,16 @@ public class Admin {
      * @param createdBy The creator's ID or username
      */
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    
+    /**
+     * Gets the profile photo filename
+     * @return The filename of the profile photo (null if no photo uploaded)
+     */
+    public String getProfilePhoto() { return profilePhoto; }
+    
+    /**
+     * Sets the profile photo filename
+     * @param profilePhoto The filename of the profile photo
+     */
+    public void setProfilePhoto(String profilePhoto) { this.profilePhoto = profilePhoto; }
 }

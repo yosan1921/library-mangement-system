@@ -2,10 +2,13 @@ package com.example.lms.controller;
 
 import com.example.lms.model.Admin;
 import com.example.lms.service.AdminService;
+import com.example.lms.service.ProfilePhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +19,9 @@ public class AdminController {
     
     @Autowired
     private AdminService adminService;
+    
+    @Autowired
+    private ProfilePhotoService profilePhotoService;
     
     @GetMapping
     public List<Admin> getAllAdmins() {
@@ -140,5 +146,129 @@ public class AdminController {
     public ResponseEntity<Map<String, String>> initializeDefaultAdmin() {
         adminService.initializeDefaultAdmin();
         return ResponseEntity.ok(Map.of("message", "Default admin initialized"));
+    }
+    
+    /**
+     * Upload profile photo using Base64 storage
+     */
+    @PostMapping("/{id}/profile-photo")
+    public ResponseEntity<?> uploadProfilePhoto(@PathVariable String id, 
+                                                @RequestParam("photo") MultipartFile file) {
+        System.out.println("=== AdminController.uploadProfilePhoto ===");
+        System.out.println("Admin ID: " + id);
+        System.out.println("File received: " + (file != null ? file.getOriginalFilename() : "null"));
+        
+        try {
+            Admin updatedAdmin = profilePhotoService.updateProfilePhoto(id, file);
+            System.out.println("Photo upload successful for admin: " + updatedAdmin.getUsername());
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Profile photo uploaded successfully",
+                "admin", updatedAdmin
+            ));
+        } catch (IOException e) {
+            System.err.println("Error uploading profile photo: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", "Failed to upload photo: " + e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid file: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            System.err.println("Error finding admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /**
+     * Get profile photo data
+     */
+    @GetMapping("/{id}/profile-photo")
+    public ResponseEntity<?> getProfilePhoto(@PathVariable String id) {
+        System.out.println("=== AdminController.getProfilePhoto ===");
+        System.out.println("Admin ID: " + id);
+        
+        try {
+            String photoData = profilePhotoService.getProfilePhoto(id);
+            
+            if (photoData == null) {
+                System.out.println("No photo found for admin: " + id);
+                return ResponseEntity.ok(Map.of("hasPhoto", false));
+            }
+            
+            System.out.println("Photo found for admin: " + id + " (length: " + photoData.length() + ")");
+            return ResponseEntity.ok(Map.of(
+                "hasPhoto", true,
+                "photoData", photoData
+            ));
+            
+        } catch (RuntimeException e) {
+            System.err.println("Error getting profile photo: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /**
+     * Delete profile photo
+     */
+    @DeleteMapping("/{id}/profile-photo")
+    public ResponseEntity<?> deleteProfilePhoto(@PathVariable String id) {
+        try {
+            Admin updatedAdmin = profilePhotoService.removeProfilePhoto(id);
+            return ResponseEntity.ok(Map.of(
+                "message", "Profile photo deleted successfully",
+                "admin", updatedAdmin
+            ));
+        } catch (RuntimeException e) {
+            System.err.println("Error deleting profile photo: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Direct test endpoint - bypasses service layer
+     */
+    @PostMapping("/{id}/test-direct-photo")
+    public ResponseEntity<?> testDirectPhoto(@PathVariable String id, 
+                                           @RequestParam("photo") MultipartFile file) {
+        System.out.println("=== DIRECT TEST - AdminController.testDirectPhoto ===");
+        
+        try {
+            // Get admin directly
+            Admin admin = adminService.getAdminById(id);
+            System.out.println("Found admin: " + admin.getUsername());
+            
+            // Convert to Base64 directly
+            byte[] fileBytes = file.getBytes();
+            String base64Photo = java.util.Base64.getEncoder().encodeToString(fileBytes);
+            String photoData = "data:" + file.getContentType() + ";base64," + base64Photo;
+            
+            System.out.println("Created photo data, length: " + photoData.length());
+            
+            // Set and save directly
+            admin.setProfilePhoto(photoData);
+            Admin savedAdmin = adminService.updateAdmin(id, admin);
+            
+            System.out.println("Saved admin. Photo field length: " + 
+                              (savedAdmin.getProfilePhoto() != null ? savedAdmin.getProfilePhoto().length() : "null"));
+            
+            // Immediately verify by re-fetching
+            Admin verifyAdmin = adminService.getAdminById(id);
+            System.out.println("Verification - Photo field length: " + 
+                              (verifyAdmin.getProfilePhoto() != null ? verifyAdmin.getProfilePhoto().length() : "null"));
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Direct photo test successful",
+                "photoLength", photoData.length(),
+                "savedPhotoLength", savedAdmin.getProfilePhoto() != null ? savedAdmin.getProfilePhoto().length() : 0,
+                "verifiedPhotoLength", verifyAdmin.getProfilePhoto() != null ? verifyAdmin.getProfilePhoto().length() : 0
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("Direct test failed: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }
