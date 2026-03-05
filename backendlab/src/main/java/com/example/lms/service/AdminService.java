@@ -127,7 +127,7 @@ public class AdminService {
         return adminRepository.save(existingAdmin);
     }
     
-    //public Admin updatePassword(String id, String oldPassword, String newPassword) {
+    public Admin updatePassword(String id, String oldPassword, String newPassword) {
         Admin admin = getAdminById(id);
         
         // In production, verify old password with hashed version
@@ -142,7 +142,7 @@ public class AdminService {
         return adminRepository.save(admin);
     }
     
-    public Admin updateProfile(String id, Admin profileData) {
+   // public Admin updateProfile(String id, Admin profileData) {
         Admin admin = getAdminById(id);
         
         if (profileData.getEmail() != null) {
