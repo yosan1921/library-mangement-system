@@ -93,7 +93,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
             
         } catch (Exception e) {
             // Log connection error but allow application to continue
-            //System.err.println("MongoDB connection error: " + e.getMessage());
+            System.err.println("MongoDB connection error: " + e.getMessage());
             System.err.println("Application will continue but database operations may fail.");
             
             // Return a fallback client with default localhost connection
