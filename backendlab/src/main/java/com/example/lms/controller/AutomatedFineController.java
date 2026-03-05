@@ -75,7 +75,7 @@ public class AutomatedFineController {
     /**
      * Get a summary of overdue information for quick dashboard display
      */
-    @GetMapping("/summary")
+    //@GetMapping("/summary")
     public ResponseEntity<?> getOverdueSummary() {
         try {
             AutomatedFineService.OverdueStatistics stats = automatedFineService.getOverdueStatistics();
