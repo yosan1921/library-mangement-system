@@ -267,7 +267,7 @@ public class NotificationService {
         for (String id : notificationIds) {
             try {
                 Notification notification = sendNotification(id);
-                if ("SENT".equals(notification.getStatus())) {
+                 ("SENT".equals(notification.getStatus())) {
                     sent++;
                 } else {
                     failed++;
