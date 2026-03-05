@@ -152,7 +152,7 @@ public class NotificationService {
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(
                     settings.getEmailUsername() != null ? settings.getEmailUsername() : "",
-                    //settings.getEmailPassword() != null ? settings.getEmailPassword() : ""
+                    settings.getEmailPassword() != null ? settings.getEmailPassword() : ""
                 );
             }
         });
