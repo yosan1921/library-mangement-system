@@ -63,7 +63,7 @@ public class NotificationService {
     }
     
     // Send a single notification
-   // public Notification sendNotification(String notificationId) {
+    public Notification sendNotification(String notificationId) {
         Optional<Notification> optNotification = notificationRepository.findById(notificationId);
         if (!optNotification.isPresent()) {
             throw new RuntimeException("Notification not found");
