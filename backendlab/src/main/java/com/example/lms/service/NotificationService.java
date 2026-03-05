@@ -294,7 +294,7 @@ public class NotificationService {
         notification.setCategory("DUE_DATE_REMINDER");
         notification.setRelatedEntityId(borrow.getId());
         
-        SystemSettings settings = getSystemSettings();
+        //SystemSettings settings = getSystemSettings();
         if (settings.getEmailNotificationsEnabled() && settings.getSmsNotificationsEnabled()) {
             notification.setType("BOTH");
         } else if (settings.getEmailNotificationsEnabled()) {
