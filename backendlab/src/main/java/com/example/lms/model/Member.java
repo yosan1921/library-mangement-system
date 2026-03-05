@@ -250,7 +250,7 @@ public class Member {
      * Gets the last update timestamp
      * @return Date when the member account was last updated
      */
-    public Date getUpdatedAt() { return updatedAt; }
+    //public Date getUpdatedAt() { return updatedAt; }
     
     /**
      * Sets the last update timestamp
