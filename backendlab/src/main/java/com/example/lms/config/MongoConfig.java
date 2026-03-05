@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 // Enables automatic auditing fields (createdDate, lastModifiedDate, etc.)
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 
-//import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MongoDB Configuration Class
@@ -30,7 +30,7 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
  * - Graceful error handling for connection failures
  * - Auditing support for automatic timestamp fields
  */
-@Configuration // Marks this class as a source of bean definitions
+//@Configuration // Marks this class as a source of bean definitions
 @EnableMongoAuditing // Enables automatic auditing of MongoDB entities
 public class MongoConfig extends AbstractMongoClientConfiguration {
 
