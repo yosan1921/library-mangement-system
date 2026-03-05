@@ -43,7 +43,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
      * 
      * @return The name of the MongoDB database to use
      */
-    //@Override
+    @Override
     protected String getDatabaseName() {
         return "lms"; // Database name for Library Management System
     }
