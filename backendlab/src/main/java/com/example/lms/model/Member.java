@@ -68,7 +68,7 @@ public class Member {
      * Contact information (phone number)
      * Used for SMS notifications and emergency contact
      */
-    private String contact;
+    private String ;
     
     /**
      * Unique membership ID assigned to each member
