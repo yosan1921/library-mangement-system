@@ -69,7 +69,7 @@ public class NotificationService {
             throw new RuntimeException("Notification not found");
         }
         
-        //Notification notification = optNotification.get();
+        Notification notification = optNotification.get();
         SystemSettings settings = getSystemSettings();
         
         boolean success = false;
