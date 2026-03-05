@@ -98,7 +98,7 @@ public class Member {
      * Timestamp when the member account was created
      * Used for audit trails and membership duration tracking
      */
-    private Date ;
+    private Date createdAt;
     
     /**
      * Timestamp when the member account was last updated
