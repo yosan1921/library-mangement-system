@@ -75,7 +75,7 @@ public class NotificationService {
         boolean success = false;
         String errorMsg = null;
         
-        try {
+        //try {
             if ("EMAIL".equals(notification.getType()) || "BOTH".equals(notification.getType())) {
                 if (!settings.getEmailNotificationsEnabled()) {
                     errorMsg = "Email notifications are disabled";
