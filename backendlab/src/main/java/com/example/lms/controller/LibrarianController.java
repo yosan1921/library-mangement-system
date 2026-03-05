@@ -62,7 +62,7 @@ public class LibrarianController {
         return ResponseEntity.ok(librarianService.getAllLibrarians());
     }
 
-    @GetMapping("/active")
+   // @GetMapping("/active")
     public ResponseEntity<List<Librarian>> getActiveLibrarians() {
         return ResponseEntity.ok(librarianService.getAllActiveLibrarians());
     }
