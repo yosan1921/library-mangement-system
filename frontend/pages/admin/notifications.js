@@ -16,6 +16,95 @@ import {
 } from '../../services/notificationService';
 import { getAllMembers } from '../../services/memberService';
 
+// Add CSS for animations and responsive behavior
+if (typeof document !== 'undefined') {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .notifications-main {
+                margin-left: 0 !important;
+                padding: 1rem !important;
+            }
+            .notifications-title {
+                font-size: 2rem !important;
+            }
+            .notifications-content {
+                padding: 1rem !important;
+            }
+            .notifications-stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .notifications-filter-section {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+            .notifications-action-buttons {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+            .notifications-desktop-table {
+                display: none !important;
+            }
+            .notifications-mobile-cards {
+                display: block !important;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .notifications-stats-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+            .notifications-desktop-table {
+                display: none !important;
+            }
+            .notifications-mobile-cards {
+                display: block !important;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .notifications-desktop-table {
+                display: block !important;
+            }
+            .notifications-mobile-cards {
+                display: none !important;
+            }
+        }
+        
+        .notifications-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .notifications-button:active {
+            transform: translateY(0);
+        }
+        
+        .notifications-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .notifications-tab:hover {
+            background-color: #f1f5f9;
+            color: #3b82f6;
+        }
+        
+        .notifications-tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .notifications-loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 export default function NotificationsManagement() {
     const [activeTab, setActiveTab] = useState('list');
     const [notifications, setNotifications] = useState([]);
@@ -264,73 +353,97 @@ export default function NotificationsManagement() {
 
     const getStatusBadge = (status) => {
         const colors = {
-            PENDING: '#f39c12',
-            SENT: '#27ae60',
-            FAILED: '#e74c3c'
+            PENDING: { bg: '#fef3c7', color: '#92400e', border: '#fde68a' },
+            SENT: { bg: '#dcfce7', color: '#166534', border: '#bbf7d0' },
+            FAILED: { bg: '#fee2e2', color: '#991b1b', border: '#fecaca' }
         };
+        const style = colors[status] || { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
         return {
-            backgroundColor: colors[status] || '#95a5a6',
-            color: 'white',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '12px',
-            fontSize: '0.85rem',
-            fontWeight: 'bold'
+            backgroundColor: style.bg,
+            color: style.color,
+            padding: '0.375rem 0.75rem',
+            borderRadius: '20px',
+            fontSize: '0.75rem',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            border: `1px solid ${style.border}`,
+            display: 'inline-block',
         };
     };
 
     const getCategoryBadge = (category) => {
         const colors = {
-            DUE_DATE_REMINDER: '#3498db',
-            OVERDUE_REMINDER: '#e74c3c',
-            RESERVATION_READY: '#9b59b6',
-            FINE_NOTICE: '#e67e22',
-            GENERAL: '#95a5a6'
+            DUE_DATE_REMINDER: { bg: '#dbeafe', color: '#1e40af', border: '#bfdbfe' },
+            OVERDUE_REMINDER: { bg: '#fee2e2', color: '#991b1b', border: '#fecaca' },
+            RESERVATION_READY: { bg: '#e9d5ff', color: '#6b21a8', border: '#d8b4fe' },
+            FINE_NOTICE: { bg: '#fed7aa', color: '#9a3412', border: '#fdba74' },
+            GENERAL: { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' }
         };
+        const style = colors[category] || { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
         return {
-            backgroundColor: colors[category] || '#95a5a6',
-            color: 'white',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '12px',
-            fontSize: '0.85rem'
+            backgroundColor: style.bg,
+            color: style.color,
+            padding: '0.375rem 0.75rem',
+            borderRadius: '20px',
+            fontSize: '0.75rem',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            border: `1px solid ${style.border}`,
+            display: 'inline-block',
         };
     };
 
     const renderStatistics = () => (
         <div style={styles.statsSection}>
-            <h2 style={styles.sectionTitle}>Notification Statistics</h2>
+            <div style={styles.sectionHeader}>
+                <h2 style={styles.sectionTitle}>
+                    <span style={styles.sectionIcon}>📊</span>
+                    Notification Statistics
+                </h2>
+            </div>
             {statistics && (
-                <div style={styles.statsGrid}>
+                <div style={styles.statsGrid} className="notifications-stats-grid">
                     <div style={styles.statCard}>
-                        <p style={styles.statLabel}>Total</p>
+                        <div style={styles.statIcon}>📬</div>
                         <p style={styles.statValue}>{statistics.total}</p>
+                        <p style={styles.statLabel}>Total</p>
                     </div>
                     <div style={styles.statCard}>
+                        <div style={styles.statIcon}>✅</div>
+                        <p style={{ ...styles.statValue, color: '#10b981' }}>{statistics.sent}</p>
                         <p style={styles.statLabel}>Sent</p>
-                        <p style={{ ...styles.statValue, color: '#27ae60' }}>{statistics.sent}</p>
                     </div>
                     <div style={styles.statCard}>
+                        <div style={styles.statIcon}>⏳</div>
+                        <p style={{ ...styles.statValue, color: '#f59e0b' }}>{statistics.pending}</p>
                         <p style={styles.statLabel}>Pending</p>
-                        <p style={{ ...styles.statValue, color: '#f39c12' }}>{statistics.pending}</p>
                     </div>
                     <div style={styles.statCard}>
+                        <div style={styles.statIcon}>❌</div>
+                        <p style={{ ...styles.statValue, color: '#ef4444' }}>{statistics.failed}</p>
                         <p style={styles.statLabel}>Failed</p>
-                        <p style={{ ...styles.statValue, color: '#e74c3c' }}>{statistics.failed}</p>
                     </div>
                     <div style={styles.statCard}>
-                        <p style={styles.statLabel}>Due Date Reminders</p>
+                        <div style={styles.statIcon}>📅</div>
                         <p style={styles.statValue}>{statistics.dueDateReminders}</p>
+                        <p style={styles.statLabel}>Due Date Reminders</p>
                     </div>
                     <div style={styles.statCard}>
-                        <p style={styles.statLabel}>Overdue Reminders</p>
+                        <div style={styles.statIcon}>⚠️</div>
                         <p style={styles.statValue}>{statistics.overdueReminders}</p>
+                        <p style={styles.statLabel}>Overdue Reminders</p>
                     </div>
                     <div style={styles.statCard}>
-                        <p style={styles.statLabel}>Reservation Notices</p>
+                        <div style={styles.statIcon}>📖</div>
                         <p style={styles.statValue}>{statistics.reservationNotifications}</p>
+                        <p style={styles.statLabel}>Reservation Notices</p>
                     </div>
                     <div style={styles.statCard}>
-                        <p style={styles.statLabel}>Fine Notices</p>
+                        <div style={styles.statIcon}>💰</div>
                         <p style={styles.statValue}>{statistics.fineNotifications}</p>
+                        <p style={styles.statLabel}>Fine Notices</p>
                     </div>
                 </div>
             )}
@@ -341,7 +454,7 @@ export default function NotificationsManagement() {
         <div style={styles.tabContent}>
             {renderStatistics()}
 
-            <div style={styles.filterSection}>
+            <div style={styles.filterSection} className="notifications-filter-section">
                 <div style={styles.filterGroup}>
                     <label style={styles.filterLabel}>Status:</label>
                     <select
@@ -372,127 +485,240 @@ export default function NotificationsManagement() {
                     </select>
                 </div>
 
-                <div style={styles.actionButtons}>
-                    <button style={{ ...styles.button, ...styles.primaryButton }} onClick={selectAll}>
-                        {selectedNotifications.length === notifications.length ? 'Deselect All' : 'Select All'}
+                <div style={styles.actionButtons} className="notifications-action-buttons">
+                    <button
+                        style={{ ...styles.button, ...styles.primaryButton }}
+                        className="notifications-button"
+                        onClick={selectAll}
+                    >
+                        {selectedNotifications.length === notifications.length ? '☑️ Deselect All' : '☐ Select All'}
                     </button>
                     <button
                         style={{ ...styles.button, ...styles.successButton }}
+                        className="notifications-button"
                         onClick={handleSendBulk}
                         disabled={selectedNotifications.length === 0}
                     >
-                        Send Selected ({selectedNotifications.length})
+                        📤 Send Selected ({selectedNotifications.length})
                     </button>
-                    <button style={{ ...styles.button, ...styles.warningButton }} onClick={handleDeleteOld}>
-                        Delete Old
+                    <button
+                        style={{ ...styles.button, ...styles.warningButton }}
+                        className="notifications-button"
+                        onClick={handleDeleteOld}
+                    >
+                        🗑️ Delete Old
                     </button>
-                    <button style={{ ...styles.button, ...styles.infoButton }} onClick={handleTriggerAutomatic}>
-                        Trigger Automatic
+                    <button
+                        style={{ ...styles.button, ...styles.infoButton }}
+                        className="notifications-button"
+                        onClick={handleTriggerAutomatic}
+                    >
+                        ⚡ Trigger Automatic
                     </button>
                 </div>
             </div>
 
             <div style={styles.tableContainer}>
-                <table style={styles.table}>
-                    <thead>
-                        <tr>
-                            <th style={styles.th}>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedNotifications.length === notifications.length && notifications.length > 0}
-                                    onChange={selectAll}
-                                />
-                            </th>
-                            <th style={styles.th}>Member</th>
-                            <th style={styles.th}>Category</th>
-                            <th style={styles.th}>Subject</th>
-                            <th style={styles.th}>Type</th>
-                            <th style={styles.th}>Status</th>
-                            <th style={styles.th}>Created</th>
-                            <th style={styles.th}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {notifications.map(notification => (
-                            <tr key={notification.id} style={styles.tr}>
-                                <td style={styles.td}>
+                {/* Desktop Table View */}
+                <div className="notifications-desktop-table">
+                    <table style={styles.table}>
+                        <thead>
+                            <tr>
+                                <th style={styles.th}>
                                     <input
                                         type="checkbox"
-                                        checked={selectedNotifications.includes(notification.id)}
-                                        onChange={() => toggleSelection(notification.id)}
+                                        checked={selectedNotifications.length === notifications.length && notifications.length > 0}
+                                        onChange={selectAll}
                                     />
-                                </td>
-                                <td style={styles.td}>{notification.memberName || 'Unknown'}</td>
-                                <td style={styles.td}>
+                                </th>
+                                <th style={styles.th}>Member</th>
+                                <th style={styles.th}>Category</th>
+                                <th style={styles.th}>Subject</th>
+                                <th style={styles.th}>Type</th>
+                                <th style={styles.th}>Status</th>
+                                <th style={styles.th}>Created</th>
+                                <th style={styles.th}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {notifications.map(notification => (
+                                <tr key={notification.id} style={styles.tr} className="notifications-tr">
+                                    <td style={styles.td}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedNotifications.includes(notification.id)}
+                                            onChange={() => toggleSelection(notification.id)}
+                                        />
+                                    </td>
+                                    <td style={styles.td}>{notification.memberName || 'Unknown'}</td>
+                                    <td style={styles.td}>
+                                        <span style={getCategoryBadge(notification.category)}>
+                                            {notification.category}
+                                        </span>
+                                    </td>
+                                    <td style={styles.td}>{notification.subject}</td>
+                                    <td style={styles.td}>{notification.type}</td>
+                                    <td style={styles.td}>
+                                        <span
+                                            style={getStatusBadge(notification.status)}
+                                            title={notification.status === 'FAILED' && notification.errorMessage ? `Error: ${notification.errorMessage}` : ''}
+                                        >
+                                            {notification.status}
+                                        </span>
+                                        {notification.status === 'FAILED' && notification.errorMessage && (
+                                            <div style={styles.errorHint}>
+                                                ⚠️ Hover to see error
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td style={styles.td}>{formatDateTime(notification.createdAt)}</td>
+                                    <td style={styles.td}>
+                                        <div style={styles.actionButtonsGroup}>
+                                            {notification.status === 'PENDING' && (
+                                                <button
+                                                    style={{ ...styles.smallButton, ...styles.successButton }}
+                                                    className="notifications-button"
+                                                    onClick={() => handleSendNotification(notification.id)}
+                                                >
+                                                    📤 Send
+                                                </button>
+                                            )}
+                                            {notification.status === 'FAILED' && (
+                                                <>
+                                                    <button
+                                                        style={{ ...styles.smallButton, ...styles.warningButton }}
+                                                        className="notifications-button"
+                                                        onClick={() => alert(`❌ Error Details:\n\n${notification.errorMessage || 'No error message available'}\n\n💡 Common fixes:\n• Check member has valid email\n• Verify email settings in System Settings\n• Ensure email notifications are enabled`)}
+                                                    >
+                                                        ⚠️ View Error
+                                                    </button>
+                                                    <button
+                                                        style={{ ...styles.smallButton, ...styles.successButton, marginLeft: '0.5rem' }}
+                                                        className="notifications-button"
+                                                        onClick={() => handleSendNotification(notification.id)}
+                                                    >
+                                                        🔄 Retry
+                                                    </button>
+                                                </>
+                                            )}
+                                            <button
+                                                style={{ ...styles.smallButton, ...styles.dangerButton, marginLeft: '0.5rem' }}
+                                                className="notifications-button"
+                                                onClick={() => handleDeleteNotification(notification.id)}
+                                            >
+                                                🗑️ Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="notifications-mobile-cards">
+                    {notifications.map(notification => (
+                        <div key={notification.id} style={styles.mobileCard} className="notifications-card">
+                            <div style={styles.cardHeader}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedNotifications.includes(notification.id)}
+                                    onChange={() => toggleSelection(notification.id)}
+                                    style={styles.cardCheckbox}
+                                />
+                                <div style={styles.cardHeaderContent}>
+                                    <h4 style={styles.cardTitle}>{notification.subject}</h4>
+                                    <span style={getStatusBadge(notification.status)}>
+                                        {notification.status}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style={styles.cardContent}>
+                                <div style={styles.cardRow}>
+                                    <span style={styles.cardLabel}>Member:</span>
+                                    <span>{notification.memberName || 'Unknown'}</span>
+                                </div>
+                                <div style={styles.cardRow}>
+                                    <span style={styles.cardLabel}>Category:</span>
                                     <span style={getCategoryBadge(notification.category)}>
                                         {notification.category}
                                     </span>
-                                </td>
-                                <td style={styles.td}>{notification.subject}</td>
-                                <td style={styles.td}>{notification.type}</td>
-                                <td style={styles.td}>
-                                    <span
-                                        style={getStatusBadge(notification.status)}
-                                        title={notification.status === 'FAILED' && notification.errorMessage ? `Error: ${notification.errorMessage}` : ''}
+                                </div>
+                                <div style={styles.cardRow}>
+                                    <span style={styles.cardLabel}>Type:</span>
+                                    <span>{notification.type}</span>
+                                </div>
+                                <div style={styles.cardRow}>
+                                    <span style={styles.cardLabel}>Created:</span>
+                                    <span>{formatDateTime(notification.createdAt)}</span>
+                                </div>
+                                {notification.status === 'FAILED' && notification.errorMessage && (
+                                    <div style={styles.errorBox}>
+                                        <span style={styles.errorIcon}>⚠️</span>
+                                        <span style={styles.errorText}>{notification.errorMessage}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div style={styles.cardActions}>
+                                {notification.status === 'PENDING' && (
+                                    <button
+                                        style={{ ...styles.button, ...styles.successButton }}
+                                        className="notifications-button"
+                                        onClick={() => handleSendNotification(notification.id)}
                                     >
-                                        {notification.status}
-                                    </span>
-                                    {notification.status === 'FAILED' && notification.errorMessage && (
-                                        <div style={styles.errorHint}>
-                                            ⚠️ Hover to see error
-                                        </div>
-                                    )}
-                                </td>
-                                <td style={styles.td}>{formatDateTime(notification.createdAt)}</td>
-                                <td style={styles.td}>
-                                    {notification.status === 'PENDING' && (
+                                        📤 Send
+                                    </button>
+                                )}
+                                {notification.status === 'FAILED' && (
+                                    <>
                                         <button
-                                            style={{ ...styles.smallButton, ...styles.successButton }}
+                                            style={{ ...styles.button, ...styles.warningButton }}
+                                            className="notifications-button"
+                                            onClick={() => alert(`❌ Error Details:\n\n${notification.errorMessage || 'No error message available'}\n\n💡 Common fixes:\n• Check member has valid email\n• Verify email settings in System Settings\n• Ensure email notifications are enabled`)}
+                                        >
+                                            ⚠️ View Error
+                                        </button>
+                                        <button
+                                            style={{ ...styles.button, ...styles.successButton }}
+                                            className="notifications-button"
                                             onClick={() => handleSendNotification(notification.id)}
                                         >
-                                            Send
+                                            🔄 Retry
                                         </button>
-                                    )}
-                                    {notification.status === 'FAILED' && (
-                                        <>
-                                            <button
-                                                style={{ ...styles.smallButton, ...styles.warningButton }}
-                                                onClick={() => alert(`❌ Error Details:\n\n${notification.errorMessage || 'No error message available'}\n\n💡 Common fixes:\n• Check member has valid email\n• Verify email settings in System Settings\n• Ensure email notifications are enabled`)}
-                                            >
-                                                View Error
-                                            </button>
-                                            <button
-                                                style={{ ...styles.smallButton, ...styles.successButton, marginLeft: '0.5rem' }}
-                                                onClick={() => handleSendNotification(notification.id)}
-                                            >
-                                                Retry
-                                            </button>
-                                        </>
-                                    )}
-                                    <button
-                                        style={{ ...styles.smallButton, ...styles.dangerButton, marginLeft: '0.5rem' }}
-                                        onClick={() => handleDeleteNotification(notification.id)}
-                                    >
-                                        Delete
-                                    </button>
-                                </td >
-                            </tr >
-                        ))
-                        }
-                    </tbody >
-                </table >
-                {
-                    notifications.length === 0 && (
+                                    </>
+                                )}
+                                <button
+                                    style={{ ...styles.button, ...styles.dangerButton }}
+                                    className="notifications-button"
+                                    onClick={() => handleDeleteNotification(notification.id)}
+                                >
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {notifications.length === 0 && (
+                    <div style={styles.emptyState}>
+                        <div style={styles.emptyIcon}>📭</div>
                         <p style={styles.emptyMessage}>No notifications found</p>
-                    )
-                }
-            </div >
+                        <p style={styles.emptySubtext}>Notifications will appear here when created</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 
     const renderCreateTab = () => (
         <div style={styles.tabContent}>
-            <h2 style={styles.sectionTitle}>Create Custom Notification</h2>
+            <div style={styles.sectionHeader}>
+                <h2 style={styles.sectionTitle}>
+                    <span style={styles.sectionIcon}>✉️</span>
+                    Create Custom Notification
+                </h2>
+            </div>
             <form onSubmit={handleCreateCustom} style={styles.form}>
                 <div style={styles.formGroup}>
                     <label style={styles.label}>Select Member *</label>
@@ -508,8 +734,8 @@ export default function NotificationsManagement() {
                                 {member.name} ({member.email || 'No email'})
                             </option>
                         ))}
-                    </select >
-                </div >
+                    </select>
+                </div>
 
                 <div style={styles.formGroup}>
                     <label style={styles.label}>Category</label>
@@ -549,16 +775,25 @@ export default function NotificationsManagement() {
                     />
                 </div>
 
-                <button type="submit" style={{ ...styles.button, ...styles.primaryButton }}>
-                    Create Notification
+                <button
+                    type="submit"
+                    style={{ ...styles.button, ...styles.primaryButton }}
+                    className="notifications-button"
+                >
+                    ✉️ Create Notification
                 </button>
-            </form >
-        </div >
+            </form>
+        </div>
     );
 
     const renderTestTab = () => (
         <div style={styles.tabContent}>
-            <h2 style={styles.sectionTitle}>Test Notification Configuration</h2>
+            <div style={styles.sectionHeader}>
+                <h2 style={styles.sectionTitle}>
+                    <span style={styles.sectionIcon}>🧪</span>
+                    Test Notification Configuration
+                </h2>
+            </div>
             <p style={styles.helpText}>
                 Send test notifications to verify your email and SMS configuration is working correctly.
             </p>
@@ -586,14 +821,21 @@ export default function NotificationsManagement() {
                     />
                 </div>
 
-                <button type="submit" style={{ ...styles.button, ...styles.primaryButton }}>
-                    Send Test Notifications
+                <button
+                    type="submit"
+                    style={{ ...styles.button, ...styles.primaryButton }}
+                    className="notifications-button"
+                >
+                    🧪 Send Test Notifications
                 </button>
             </form>
 
             <div style={styles.infoBox}>
-                <h3>Configuration Tips:</h3>
-                <ul>
+                <div style={styles.infoHeader}>
+                    <span style={styles.infoIcon}>💡</span>
+                    <h3 style={styles.infoTitle}>Configuration Tips</h3>
+                </div>
+                <ul style={styles.tipsList}>
                     <li>For Gmail, use an App Password instead of your regular password</li>
                     <li>Enable "Less secure app access" or use OAuth2 for better security</li>
                     <li>For SMS, ensure you have valid API credentials from your provider</li>
@@ -609,8 +851,11 @@ export default function NotificationsManagement() {
                 <Navbar />
                 <div style={styles.layout}>
                     <Sidebar role="admin" />
-                    <main style={styles.main}>
-                        <p>Loading notifications...</p>
+                    <main style={styles.main} className="notifications-main">
+                        <div style={styles.loadingContainer}>
+                            <div style={styles.loadingSpinner} className="notifications-loading-spinner"></div>
+                            <p style={styles.loadingText}>Loading notifications...</p>
+                        </div>
                     </main>
                 </div>
             </>
@@ -622,31 +867,44 @@ export default function NotificationsManagement() {
             <Navbar />
             <div style={styles.layout}>
                 <Sidebar role="admin" />
-                <main style={styles.main}>
-                    <h1 style={styles.title}>Notifications Management</h1>
-
-                    <div style={styles.tabs}>
-                        <button
-                            style={activeTab === 'list' ? { ...styles.tab, ...styles.activeTabStyle } : styles.tab}
-                            onClick={() => setActiveTab('list')}
-                        >
-                            All Notifications
-                        </button>
-                        <button
-                            style={activeTab === 'create' ? { ...styles.tab, ...styles.activeTabStyle } : styles.tab}
-                            onClick={() => setActiveTab('create')}
-                        >
-                            Create Custom
-                        </button>
-                        <button
-                            style={activeTab === 'test' ? { ...styles.tab, ...styles.activeTabStyle } : styles.tab}
-                            onClick={() => setActiveTab('test')}
-                        >
-                            Test Configuration
-                        </button>
+                <main style={styles.main} className="notifications-main">
+                    <div style={styles.header}>
+                        <h1 style={styles.title} className="notifications-title">
+                            <span style={styles.titleIcon}>🔔</span>
+                            Notifications Management
+                        </h1>
                     </div>
 
-                    <div style={styles.content}>
+                    <div style={styles.tabsContainer}>
+                        <div style={styles.tabs}>
+                            <button
+                                style={activeTab === 'list' ? { ...styles.tab, ...styles.activeTabStyle } : styles.tab}
+                                className="notifications-tab"
+                                onClick={() => setActiveTab('list')}
+                            >
+                                <span style={styles.tabIcon}>📋</span>
+                                All Notifications
+                            </button>
+                            <button
+                                style={activeTab === 'create' ? { ...styles.tab, ...styles.activeTabStyle } : styles.tab}
+                                className="notifications-tab"
+                                onClick={() => setActiveTab('create')}
+                            >
+                                <span style={styles.tabIcon}>✉️</span>
+                                Create Custom
+                            </button>
+                            <button
+                                style={activeTab === 'test' ? { ...styles.tab, ...styles.activeTabStyle } : styles.tab}
+                                className="notifications-tab"
+                                onClick={() => setActiveTab('test')}
+                            >
+                                <span style={styles.tabIcon}>🧪</span>
+                                Test Configuration
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style={styles.content} className="notifications-content">
                         {activeTab === 'list' && renderListTab()}
                         {activeTab === 'create' && renderCreateTab()}
                         {activeTab === 'test' && renderTestTab()}
@@ -660,52 +918,109 @@ export default function NotificationsManagement() {
 const styles = {
     layout: {
         display: 'flex',
+        minHeight: '100vh',
     },
     main: {
         flex: 1,
         marginLeft: '260px',
         padding: '2rem',
-        backgroundColor: '#ecf0f1',
+        backgroundColor: '#f8fafc',
         minHeight: 'calc(100vh - 60px)',
+        transition: 'margin-left 0.3s ease',
+    },
+    header: {
+        marginBottom: '2rem',
     },
     title: {
-        color: '#2c3e50',
+        color: '#1e293b',
+        marginBottom: '0.5rem',
+        fontSize: '2.5rem',
+        fontWeight: '700',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+    },
+    titleIcon: {
+        fontSize: '2rem',
+    },
+    loadingContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '400px',
+        gap: '1rem',
+    },
+    loadingSpinner: {
+        width: '40px',
+        height: '40px',
+        border: '4px solid #e2e8f0',
+        borderTop: '4px solid #3b82f6',
+        borderRadius: '50%',
+    },
+    loadingText: {
+        color: '#64748b',
+        fontSize: '1.1rem',
+    },
+    tabsContainer: {
         marginBottom: '2rem',
     },
     tabs: {
         display: 'flex',
-        gap: '1rem',
-        marginBottom: '2rem',
-        borderBottom: '2px solid #ddd',
+        gap: '0.5rem',
+        borderBottom: '2px solid #e2e8f0',
+        overflowX: 'auto',
+        paddingBottom: '0.5rem',
     },
     tab: {
-        padding: '0.75rem 1.5rem',
+        padding: '1rem 1.5rem',
         border: 'none',
         background: 'transparent',
         cursor: 'pointer',
         fontSize: '1rem',
-        color: '#7f8c8d',
-        borderBottom: '3px solid transparent',
-        transition: 'all 0.3s',
+        color: '#64748b',
+        borderRadius: '8px 8px 0 0',
+        transition: 'all 0.3s ease',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        fontWeight: '500',
+        whiteSpace: 'nowrap',
     },
     activeTabStyle: {
-        color: '#3498db',
-        borderBottom: '3px solid #3498db',
-        fontWeight: 'bold',
+        color: '#3b82f6',
+        backgroundColor: 'white',
+        borderBottom: '3px solid #3b82f6',
+        fontWeight: '600',
+        boxShadow: '0 -2px 8px rgba(59, 130, 246, 0.1)',
+    },
+    tabIcon: {
+        fontSize: '1.1rem',
     },
     content: {
         backgroundColor: 'white',
-        borderRadius: '8px',
+        borderRadius: '12px',
         padding: '2rem',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e2e8f0',
     },
     tabContent: {
         width: '100%',
     },
+    sectionHeader: {
+        marginBottom: '2rem',
+    },
     sectionTitle: {
-        color: '#2c3e50',
-        marginBottom: '1.5rem',
-        marginTop: 0,
+        color: '#1e293b',
+        margin: '0',
+        fontSize: '1.5rem',
+        fontWeight: '600',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+    },
+    sectionIcon: {
+        fontSize: '1.25rem',
     },
     statsSection: {
         marginBottom: '2rem',
@@ -717,20 +1032,28 @@ const styles = {
         marginBottom: '2rem',
     },
     statCard: {
-        backgroundColor: '#f8f9fa',
-        padding: '1rem',
-        borderRadius: '8px',
+        backgroundColor: 'white',
+        padding: '1.5rem',
+        borderRadius: '12px',
         textAlign: 'center',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    },
+    statIcon: {
+        fontSize: '2rem',
+        marginBottom: '0.5rem',
     },
     statLabel: {
-        margin: 0,
-        color: '#7f8c8d',
-        fontSize: '0.9rem',
+        margin: '0.5rem 0 0 0',
+        color: '#64748b',
+        fontSize: '0.875rem',
+        fontWeight: '500',
     },
     statValue: {
-        margin: '0.5rem 0 0 0',
-        color: '#2c3e50',
-        fontSize: '1.5rem',
+        margin: '0.5rem 0',
+        color: '#1e293b',
+        fontSize: '2rem',
         fontWeight: 'bold',
     },
     filterSection: {
@@ -739,6 +1062,10 @@ const styles = {
         marginBottom: '1.5rem',
         flexWrap: 'wrap',
         alignItems: 'center',
+        padding: '1.5rem',
+        backgroundColor: '#f8fafc',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0',
     },
     filterGroup: {
         display: 'flex',
@@ -746,44 +1073,137 @@ const styles = {
         gap: '0.5rem',
     },
     filterLabel: {
-        fontWeight: 'bold',
-        color: '#2c3e50',
+        fontWeight: '600',
+        color: '#374151',
+        fontSize: '0.875rem',
     },
     filterSelect: {
-        padding: '0.5rem',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        fontSize: '0.9rem',
+        padding: '0.75rem',
+        border: '1px solid #e2e8f0',
+        borderRadius: '8px',
+        fontSize: '0.875rem',
+        backgroundColor: 'white',
+        color: '#374151',
+        cursor: 'pointer',
+        transition: 'border-color 0.2s ease',
     },
     actionButtons: {
         display: 'flex',
         gap: '0.5rem',
         marginLeft: 'auto',
+        flexWrap: 'wrap',
+    },
+    actionButtonsGroup: {
+        display: 'flex',
+        gap: '0.5rem',
+        flexWrap: 'wrap',
     },
     tableContainer: {
-        overflowX: 'auto',
+        width: '100%',
     },
     table: {
         width: '100%',
         borderCollapse: 'collapse',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
     },
     th: {
-        backgroundColor: '#34495e',
-        color: 'white',
+        backgroundColor: '#f8fafc',
+        color: '#374151',
         padding: '1rem',
         textAlign: 'left',
-        fontWeight: 'bold',
+        fontWeight: '600',
+        fontSize: '0.875rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        borderBottom: '2px solid #e2e8f0',
     },
     tr: {
-        borderBottom: '1px solid #ddd',
+        borderBottom: '1px solid #f1f5f9',
+        transition: 'background-color 0.2s ease',
     },
     td: {
         padding: '1rem',
+        color: '#374151',
+        verticalAlign: 'top',
+    },
+    mobileCard: {
+        backgroundColor: 'white',
+        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        marginBottom: '1rem',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        transition: 'box-shadow 0.2s ease',
+    },
+    cardHeader: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '1rem',
+        marginBottom: '1rem',
+    },
+    cardCheckbox: {
+        marginTop: '0.25rem',
+    },
+    cardHeaderContent: {
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: '1rem',
+        flexWrap: 'wrap',
+    },
+    cardTitle: {
+        color: '#1e293b',
+        margin: '0',
+        fontSize: '1.1rem',
+        fontWeight: '600',
+        lineHeight: '1.4',
+        flex: '1',
+    },
+    cardContent: {
+        marginBottom: '1.5rem',
+    },
+    cardRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '0.75rem',
+        gap: '1rem',
+    },
+    cardLabel: {
+        color: '#64748b',
+        fontWeight: '500',
+        fontSize: '0.875rem',
+        minWidth: '80px',
+    },
+    cardActions: {
+        display: 'flex',
+        gap: '0.5rem',
+        flexWrap: 'wrap',
+    },
+    emptyState: {
+        textAlign: 'center',
+        padding: '4rem 2rem',
+        color: '#64748b',
+    },
+    emptyIcon: {
+        fontSize: '4rem',
+        marginBottom: '1rem',
+        opacity: '0.5',
     },
     emptyMessage: {
-        textAlign: 'center',
-        padding: '2rem',
-        color: '#7f8c8d',
+        fontSize: '1.25rem',
+        fontWeight: '600',
+        marginBottom: '0.5rem',
+        color: '#475569',
+    },
+    emptySubtext: {
+        fontSize: '1rem',
+        color: '#64748b',
+        margin: '0',
     },
     form: {
         maxWidth: '600px',
@@ -794,68 +1214,124 @@ const styles = {
     label: {
         display: 'block',
         marginBottom: '0.5rem',
-        color: '#2c3e50',
-        fontWeight: 'bold',
+        color: '#374151',
+        fontWeight: '600',
+        fontSize: '0.875rem',
     },
     input: {
         width: '100%',
         padding: '0.75rem',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '8px',
         fontSize: '1rem',
         boxSizing: 'border-box',
+        color: '#374151',
+        transition: 'border-color 0.2s ease',
     },
     helpText: {
-        color: '#7f8c8d',
-        fontSize: '0.9rem',
-        marginBottom: '1rem',
+        color: '#64748b',
+        fontSize: '0.875rem',
+        marginBottom: '1.5rem',
+        lineHeight: '1.6',
     },
     button: {
         padding: '0.75rem 1.5rem',
         border: 'none',
-        borderRadius: '4px',
+        borderRadius: '8px',
         cursor: 'pointer',
-        fontSize: '1rem',
-        transition: 'all 0.3s',
+        fontSize: '0.875rem',
+        fontWeight: '500',
+        transition: 'all 0.2s ease',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        whiteSpace: 'nowrap',
     },
     smallButton: {
         padding: '0.5rem 1rem',
         border: 'none',
-        borderRadius: '4px',
+        borderRadius: '8px',
         cursor: 'pointer',
-        fontSize: '0.85rem',
+        fontSize: '0.75rem',
+        fontWeight: '500',
+        transition: 'all 0.2s ease',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.25rem',
+        whiteSpace: 'nowrap',
     },
     primaryButton: {
-        backgroundColor: '#3498db',
+        backgroundColor: '#3b82f6',
         color: 'white',
     },
     successButton: {
-        backgroundColor: '#27ae60',
+        backgroundColor: '#10b981',
         color: 'white',
     },
     dangerButton: {
-        backgroundColor: '#e74c3c',
+        backgroundColor: '#ef4444',
         color: 'white',
     },
     warningButton: {
-        backgroundColor: '#f39c12',
+        backgroundColor: '#f59e0b',
         color: 'white',
     },
     infoButton: {
-        backgroundColor: '#9b59b6',
+        backgroundColor: '#8b5cf6',
         color: 'white',
     },
     infoBox: {
         marginTop: '2rem',
         padding: '1.5rem',
-        backgroundColor: '#e8f4f8',
-        borderRadius: '8px',
-        borderLeft: '4px solid #3498db',
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    },
+    infoHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        marginBottom: '1rem',
+    },
+    infoIcon: {
+        fontSize: '1.5rem',
+    },
+    infoTitle: {
+        color: '#1e293b',
+        margin: '0',
+        fontSize: '1.125rem',
+        fontWeight: '600',
+    },
+    tipsList: {
+        margin: '0',
+        paddingLeft: '1.5rem',
+        color: '#475569',
+        lineHeight: '1.8',
     },
     errorHint: {
         fontSize: '0.7rem',
-        color: '#e74c3c',
+        color: '#ef4444',
         marginTop: '0.25rem',
         fontStyle: 'italic',
+    },
+    errorBox: {
+        backgroundColor: '#fee2e2',
+        padding: '0.75rem',
+        borderRadius: '8px',
+        marginTop: '0.75rem',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '0.5rem',
+        border: '1px solid #fecaca',
+    },
+    errorIcon: {
+        fontSize: '1rem',
+        flexShrink: 0,
+    },
+    errorText: {
+        fontSize: '0.875rem',
+        color: '#991b1b',
+        lineHeight: '1.4',
     },
 };
